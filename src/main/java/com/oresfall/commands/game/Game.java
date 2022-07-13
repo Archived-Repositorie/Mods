@@ -2,30 +2,45 @@ package com.oresfall.commands.game;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.oresfall.commands.argumenttype.GameArgumentType;
+import com.oresfall.commands.game.admin.CreateGame;
+import com.oresfall.commands.game.player.Join;
+import com.oresfall.commands.game.player.Leave;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import com.mojang.brigadier.context.CommandContext;
 
 public class Game {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
         dispatcher.register(
                 CommandManager.literal("game")
                         .then(
-                                CommandManager.argument("game", StringArgumentType.word())
-                                        .executes(TestGame::run)
+                                CommandManager.literal("player")
                                         .then(
                                                 CommandManager.literal("join")
                                                         .then(
-                                                                CommandManager.argument("target",EntityArgumentType.player())
+                                                                CommandManager.argument("game", GameArgumentType.game())
                                                                         .executes(Join::run)
                                                         )
                                         ).then(
                                                 CommandManager.literal("leave")
                                                         .then(
-                                                                CommandManager.argument("target",EntityArgumentType.player())
+                                                                CommandManager.argument("game", GameArgumentType.game())
                                                                         .executes(Leave::run)
+                                                        )
+                                        )
+                        ).then(
+                                CommandManager.literal("admin")
+                                        .requires(src -> src.hasPermissionLevel(3))
+                                        .then(
+                                                CommandManager.literal("creategame")
+                                                        .then(
+                                                                CommandManager.argument("name", StringArgumentType.word())
+                                                                        .then(
+                                                                                CommandManager.argument("world", DimensionArgumentType.dimension())
+                                                                                        .executes(CreateGame::run)
+                                                                        )
                                                         )
                                         )
                         )
