@@ -1,17 +1,21 @@
 package com.oresfall.eventserver;
 
+import com.oresfall.db.Database;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 
+import java.util.Arrays;
+
 public class EventServer {
     private static void Started(MinecraftServer server) {
-
+        Database.readGames(server);
+        System.out.println(Arrays.deepToString(Database.getGamesByName().toArray()));
     }
     private static void Starting(MinecraftServer server) {
 
     }
     private static void Stopping(MinecraftServer server) {
-        server.getWorlds();
+        Database.saveGames();
     }
 
     public static void register() {

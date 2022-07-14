@@ -4,8 +4,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.oresfall.commands.argumenttype.GameArgumentType;
 import com.oresfall.commands.game.admin.CreateGame;
+import com.oresfall.commands.game.admin.GamesInfo;
+import com.oresfall.commands.game.admin.RemoveGame;
 import com.oresfall.commands.game.player.Join;
 import com.oresfall.commands.game.player.Leave;
+import com.oresfall.commands.game.player.Random;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -29,6 +32,9 @@ public class Game {
                                                                 CommandManager.argument("game", GameArgumentType.game())
                                                                         .executes(Leave::run)
                                                         )
+                                        ).then(
+                                                CommandManager.literal("random")
+                                                        .executes(Random::run)
                                         )
                         ).then(
                                 CommandManager.literal("admin")
@@ -42,6 +48,15 @@ public class Game {
                                                                                         .executes(CreateGame::run)
                                                                         )
                                                         )
+                                        ).then(
+                                                CommandManager.literal("removegame")
+                                                        .then(
+                                                                CommandManager.argument("game", GameArgumentType.game())
+                                                                        .executes(RemoveGame::run)
+                                                        )
+                                        ).then(
+                                                CommandManager.literal("gamesinfo")
+                                                        .executes(GamesInfo::run)
                                         )
                         )
         );

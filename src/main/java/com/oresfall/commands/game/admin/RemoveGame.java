@@ -1,29 +1,30 @@
-package com.oresfall.commands.game.player;
+package com.oresfall.commands.game.admin;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.oresfall.Game;
-import com.oresfall.IEntityDataSaver;
+import com.oresfall.Main;
 import com.oresfall.commands.argumenttype.GameArgumentType;
+import com.oresfall.db.Database;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-public class Leave {
-    public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity target = context.getSource().getPlayer();
-        IEntityDataSaver targetData = (IEntityDataSaver)target;
-        Game game = GameArgumentType.getGame("game", context);
+import java.util.Arrays;
 
-        if(!targetData.getPersistentData().getBoolean("JoinedGame") || (game.leavePlayer(target) == -1)) {
-            target.sendMessage(Text.empty().append("You are not in game!").formatted(Formatting.RED));
-            targetData.getPersistentData().putBoolean("JoinedGame",false);
+public class RemoveGame {
+    public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        Game game = GameArgumentType.getGame("game", context);
+        ServerPlayerEntity target = context.getSource().getPlayer();
+
+        if(!Database.ifGameExist(game)) {
+            target.sendMessage(Text.empty().append("Game doesn't exist!").formatted(Formatting.RED));
             return -1;
         }
-
-        target.sendMessage(Text.of("Left the game!"));
-        game.leavePlayer(target);
+        Database.removeGame(game);
+        target.sendMessage(Text.of(String.format("Removed minigame %s", game)));
+        Main.LOGGER.info(Arrays.deepToString(Database.getGames().toArray()));
         return 0;
     }
 }

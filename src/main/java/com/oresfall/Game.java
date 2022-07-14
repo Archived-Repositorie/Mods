@@ -68,4 +68,21 @@ public class Game {
     public String toString() {
         return name;
     }
+
+    public ServerWorld getWorld() {
+        return world;
+    }
+
+    public ArrayList<ServerPlayerEntity> getPlayers() {
+        return players;
+    }
+
+    public ArrayList<String> getPlayersByName() {
+        ArrayList<String> playersByName = new ArrayList<String>();
+        for(ServerPlayerEntity player : players) {
+            if(player == null) continue;
+            playersByName.add(player.getEntityName());
+        }
+        return playersByName;
+    }
 }
