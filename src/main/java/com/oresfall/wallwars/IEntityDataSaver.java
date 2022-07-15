@@ -1,4 +1,4 @@
-package com.oresfall;
+package com.oresfall.wallwars;
 
 import net.minecraft.nbt.NbtCompound;
 

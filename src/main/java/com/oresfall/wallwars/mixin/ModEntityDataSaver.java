@@ -1,6 +1,6 @@
-package com.oresfall.mixin;
+package com.oresfall.wallwars.mixin;
 
-import com.oresfall.IEntityDataSaver;
+import com.oresfall.wallwars.IEntityDataSaver;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import org.spongepowered.asm.mixin.Mixin;

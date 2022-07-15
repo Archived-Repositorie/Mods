@@ -1,14 +1,14 @@
-package com.oresfall.commands.game;
+package com.oresfall.wallwars.commands.game;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.oresfall.commands.argumenttype.GameArgumentType;
-import com.oresfall.commands.game.admin.CreateGame;
-import com.oresfall.commands.game.admin.GamesInfo;
-import com.oresfall.commands.game.admin.RemoveGame;
-import com.oresfall.commands.game.player.Join;
-import com.oresfall.commands.game.player.Leave;
-import com.oresfall.commands.game.player.Random;
+import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
+import com.oresfall.wallwars.commands.game.admin.CreateGame;
+import com.oresfall.wallwars.commands.game.admin.GamesInfo;
+import com.oresfall.wallwars.commands.game.admin.RemoveGame;
+import com.oresfall.wallwars.commands.game.player.Join;
+import com.oresfall.wallwars.commands.game.player.Leave;
+import com.oresfall.wallwars.commands.game.player.Random;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;

@@ -1,12 +1,14 @@
-package com.oresfall;
+package com.oresfall.wallwars;
 
-import com.oresfall.db.Database;
+import com.oresfall.wallwars.db.Database;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Game {
     private String name;
@@ -16,6 +18,13 @@ public class Game {
     private final int maxPlayers = 20;
     private final int maxPlayersForTeam = maxPlayers/4;
     private final int plotXbyZ = 60;
+    private final Vec3d lobbyPlace = new Vec3d(0, 60, 0);
+    private final Vec3d spawnPlace = new Vec3d(0, 60, 0);
+    private final ArrayList<Vec3d> teleportPlaces = new ArrayList<Vec3d>(Arrays.asList(
+            new Vec3d(0, 60, 0),
+            new Vec3d(0, 60, 0),
+            new Vec3d(0, 60, 0)
+    )); //TODO: Configurable through command
     public Game(String name, ServerWorld world) {
         this.name = name;
         this.world = world;

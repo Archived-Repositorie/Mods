@@ -1,12 +1,14 @@
-package com.oresfall.db;
+package com.oresfall.wallwars.db;
 
-import com.oresfall.Game;
+import com.oresfall.wallwars.Game;
+import com.oresfall.wallwars.SaveGameBase;
 import net.minecraft.server.world.ServerWorld;
 
 import java.util.ArrayList;
 
 class SaveGame extends SaveGameBase {
-    SaveGame(ArrayList<Game> games) {
+    public SaveGame(ArrayList<Game> games) {
+        super();
         this.games = new String[games.size()][2];
         for(Game game : games) {
             if(game == null) continue;

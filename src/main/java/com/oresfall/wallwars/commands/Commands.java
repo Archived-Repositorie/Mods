@@ -1,13 +1,13 @@
-package com.oresfall.commands;
+package com.oresfall.wallwars.commands;
 
-import com.oresfall.commands.argumenttype.GameArgumentType;
-import com.oresfall.commands.game.Game;
+import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
+import com.oresfall.wallwars.commands.game.Game;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.util.Identifier;
 
-import static com.oresfall.Main.modid;
+import static com.oresfall.wallwars.Main.modid;
 
 public class Commands {
     public static void register() {

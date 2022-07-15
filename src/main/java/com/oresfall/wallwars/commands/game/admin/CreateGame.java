@@ -1,11 +1,11 @@
-package com.oresfall.commands.game.admin;
+package com.oresfall.wallwars.commands.game.admin;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.oresfall.Game;
-import com.oresfall.Main;
-import com.oresfall.db.Database;
+import com.oresfall.wallwars.Game;
+import com.oresfall.wallwars.Main;
+import com.oresfall.wallwars.db.Database;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;

@@ -1,6 +1,6 @@
-package com.oresfall.eventserver;
+package com.oresfall.wallwars.events;
 
-import com.oresfall.db.Database;
+import com.oresfall.wallwars.db.Database;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 
@@ -22,5 +22,6 @@ public class EventServer {
         ServerLifecycleEvents.SERVER_STARTED.register(EventServer::Started);
         ServerLifecycleEvents.SERVER_STARTING.register(EventServer::Starting);
         ServerLifecycleEvents.SERVER_STOPPING.register(EventServer::Stopping);
+
     }
 }

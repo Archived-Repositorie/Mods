@@ -1,9 +1,10 @@
-package com.oresfall.db;
+package com.oresfall.wallwars.db;
 
 import com.google.gson.Gson;
-import com.oresfall.Game;
-import com.oresfall.Main;
-import com.oresfall.utls.Utils;
+import com.oresfall.wallwars.Game;
+import com.oresfall.wallwars.Main;
+import com.oresfall.wallwars.SaveGameBase;
+import com.oresfall.wallwars.utls.Utils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 
@@ -43,8 +44,6 @@ public class Database {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        Main.LOGGER.info(json);
     }
 
     public static void readGames(MinecraftServer server) {
