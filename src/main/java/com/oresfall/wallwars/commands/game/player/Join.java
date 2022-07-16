@@ -14,7 +14,7 @@ public class Join {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
         IEntityDataSaver targetData = (IEntityDataSaver)target;
-        Game game = GameArgumentType.getGame("game", context);
+        Game game = GameArgumentType.getGame( context,"game");
 
         if(targetData.getPersistentData().getBoolean("JoinedGame")) {
             target.sendMessage(Text.empty().append("You are already in game!").formatted(Formatting.RED));

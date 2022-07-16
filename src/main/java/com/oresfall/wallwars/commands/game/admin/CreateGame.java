@@ -4,7 +4,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.oresfall.wallwars.Game;
-import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,8 +11,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-
-import java.util.Arrays;
 
 public class CreateGame {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -28,7 +25,6 @@ public class CreateGame {
         Game game = new Game(gameName,world);
         Database.addGame(game);
         target.sendMessage(Text.of(String.format("Created new minigame %s", game)));
-        Main.LOGGER.info(Arrays.deepToString(Database.getGames().toArray()));
 
         return 0;
     }

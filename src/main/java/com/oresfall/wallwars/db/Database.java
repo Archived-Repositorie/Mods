@@ -3,7 +3,6 @@ package com.oresfall.wallwars.db;
 import com.google.gson.Gson;
 import com.oresfall.wallwars.Game;
 import com.oresfall.wallwars.Main;
-import com.oresfall.wallwars.SaveGameBase;
 import com.oresfall.wallwars.utls.Utils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -37,10 +36,6 @@ public class Database {
             PrintWriter writer = new PrintWriter(configDir+"/"+Main.modid+"/data.json", StandardCharsets.UTF_8);
             writer.println(json);
             writer.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -60,10 +55,13 @@ public class Database {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-        SaveGameBase gamesData = gson.fromJson(data,SaveGameBase.class);
-        for(String[] gameData : gamesData.games) {
+        SaveGame gamesData = gson.fromJson(data,SaveGame.class);
+        if(gamesData.games == null) return;
+        for(SaveGame.Base gameData : gamesData.games) {
             if(gameData == null) continue;
-            Game game = new Game(gameData[0], Utils.getWorldByName(server, gameData[1]));
+            if(getGameByName(gameData.name) != null) continue;
+            Game game = new Game(gameData.name, Utils.getWorldByName(server, gameData.world));
+            game.setSpawnCoords(gameData.spawnCoords[0], gameData.spawnCoords[1], gameData.spawnCoords[2]);
             Database.addGame(game);
         }
     }

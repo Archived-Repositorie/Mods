@@ -14,7 +14,7 @@ public class GameArgumentType implements ArgumentType<Game> {
         return new GameArgumentType();
     }
 
-    public static <S> Game getGame(String name, CommandContext<S> context) {
+    public static <S> Game getGame(CommandContext<S> context,String name) {
         return context.getArgument(name, Game.class);
     }
 

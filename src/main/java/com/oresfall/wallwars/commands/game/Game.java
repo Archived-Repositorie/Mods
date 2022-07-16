@@ -6,10 +6,13 @@ import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.game.admin.CreateGame;
 import com.oresfall.wallwars.commands.game.admin.GamesInfo;
 import com.oresfall.wallwars.commands.game.admin.RemoveGame;
+import com.oresfall.wallwars.commands.game.admin.settings.ChangeWorld;
+import com.oresfall.wallwars.commands.game.admin.settings.SetSpawnCoords;
 import com.oresfall.wallwars.commands.game.player.Join;
 import com.oresfall.wallwars.commands.game.player.Leave;
 import com.oresfall.wallwars.commands.game.player.Random;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -28,10 +31,7 @@ public class Game {
                                                         )
                                         ).then(
                                                 CommandManager.literal("leave")
-                                                        .then(
-                                                                CommandManager.argument("game", GameArgumentType.game())
-                                                                        .executes(Leave::run)
-                                                        )
+                                                        .executes(Leave::run)
                                         ).then(
                                                 CommandManager.literal("random")
                                                         .executes(Random::run)
@@ -57,6 +57,27 @@ public class Game {
                                         ).then(
                                                 CommandManager.literal("gamesinfo")
                                                         .executes(GamesInfo::run)
+                                        ).then(
+                                                CommandManager.literal("settings")
+                                                        .then(
+                                                                CommandManager.literal("changeworld")
+                                                                        .then(
+                                                                                CommandManager.argument("game", GameArgumentType.game())
+                                                                                        .then(
+                                                                                                CommandManager.argument("world", DimensionArgumentType.dimension())
+                                                                                                        .executes(ChangeWorld::run)
+                                                                                        )
+                                                                        )
+                                                        ).then(
+                                                                CommandManager.literal("setspawncoords")
+                                                                        .then(
+                                                                                CommandManager.argument("game", GameArgumentType.game())
+                                                                                        .then(
+                                                                                                CommandManager.argument("coords", BlockPosArgumentType.blockPos())
+                                                                                                        .executes(SetSpawnCoords::run)
+                                                                                        )
+                                                                        )
+                                                        )
                                         )
                         )
         );

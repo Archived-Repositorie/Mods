@@ -1,11 +1,14 @@
 package com.oresfall.wallwars;
 
 import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.utls.Utils;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.TeleportTarget;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +22,7 @@ public class Game {
     private final int maxPlayersForTeam = maxPlayers/4;
     private final int plotXbyZ = 60;
     private final Vec3d lobbyPlace = new Vec3d(0, 60, 0);
-    private final Vec3d spawnPlace = new Vec3d(0, 60, 0);
+    private Vec3d spawnPlace = new Vec3d(0, 60, 0);
     private final ArrayList<Vec3d> teleportPlaces = new ArrayList<Vec3d>(Arrays.asList(
             new Vec3d(0, 60, 0),
             new Vec3d(0, 60, 0),
@@ -33,7 +36,14 @@ public class Game {
 
     public int joinPlayer(ServerPlayerEntity player) {
         if(players.size() == maxPlayers) return -1;
+        IEntityDataSaver playerData = (IEntityDataSaver)player;
 
+        playerData.getPersistentData().putLongArray("LocationBefore", new long[]{
+                (long)player.getX(),
+                (long)player.getY(),
+                (long)player.getZ()
+        });
+        playerData.getPersistentData().putString("DimBefore", player.getEntityWorld().getRegistryKey().getValue().toString());
         players.add(player);
         return 0;
         //TODO: Teleport to start
@@ -42,8 +52,21 @@ public class Game {
     public int leavePlayer(ServerPlayerEntity player) {
         if(!players.contains(player)) return -1;
         players.remove(player);
+
+        IEntityDataSaver playerData = (IEntityDataSaver)player;
+        long[] playerBeforePos = playerData.getPersistentData().getLongArray("LocationBefore");
+        ServerWorld playerBeforeDim = Utils.getWorldByName(player.getServer(), ((IEntityDataSaver)player).getPersistentData().getString("DimBefore"));
+        FabricDimensions.teleport(player, playerBeforeDim, new TeleportTarget(
+                new Vec3d(
+                        playerBeforePos[0],
+                        playerBeforePos[1],
+                        playerBeforePos[2]
+                ),
+                player.getVelocity(),
+                player.getYaw(),
+                player.getPitch()
+        ));
         return 0;
-        //TODO: Teleport to lobby
     }
 
 
@@ -93,5 +116,22 @@ public class Game {
             playersByName.add(player.getEntityName());
         }
         return playersByName;
+    }
+
+    public int setWorld(ServerWorld world) {
+        if(getWorld() == world) return -1;
+        this.world = world;
+        return 0;
+    }
+
+    public int setSpawnCoords(int x, int y, int z) {
+        var place = new Vec3d(x,y,z);
+        if(place.equals(spawnPlace)) return -1;
+        spawnPlace = place;
+        return 0;
+    }
+
+    public int[] getSpawnCoords() {
+        return new int[]{(int) spawnPlace.x, (int) spawnPlace.y, (int) spawnPlace.z};
     }
 }
