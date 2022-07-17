@@ -1,2 +1,1 @@
-# Mods
-Mods for server
+# Docs
