@@ -8,23 +8,46 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Class for player events
+ */
 public class EventPlayer {
+    /**
+     * Event when player joins
+     * Look at {@link #register()} for more informations
+     * @param serverPlayNetworkHandler
+     * @param packetSender
+     * @param server
+     */
     private static void Join(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer server) {
         leaving(serverPlayNetworkHandler);
-
     }
 
+    /**
+     * Event when player disconnects
+     * Look at {@link #register()} for more informations
+     * @param serverPlayNetworkHandler
+     * @param server
+     */
+    private static void Disconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
+        leaving(serverPlayNetworkHandler);
+    }
+
+    /**
+     * Registers player events
+     */
     public static void register() {
         ServerPlayConnectionEvents.DISCONNECT.register(EventPlayer::Disconnect);
         ServerPlayConnectionEvents.JOIN.register(EventPlayer::Join);
     }
 
-    private static void Disconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
-        leaving(serverPlayNetworkHandler);
-    }
-
-    private static void leaving(ServerPlayNetworkHandler serverPlayNetworkHandler) {
+    /**
+     * Used to leave players from game after disconnecting
+     * @param serverPlayNetworkHandler player
+     */
+    private static void leaving(@NotNull ServerPlayNetworkHandler serverPlayNetworkHandler) {
         ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
         IEntityDataSaver targetData = (IEntityDataSaver)player;
         for(Game game : Database.getGames()) {

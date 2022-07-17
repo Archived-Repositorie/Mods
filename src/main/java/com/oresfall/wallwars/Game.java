@@ -9,31 +9,120 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.TeleportTarget;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
+/**
+ * Class to create instances of games
+ */
 public class Game {
+    /**
+     * Name of game
+     */
     private String name;
+    /**
+     * World of game
+     */
     private ServerWorld world;
+    /**
+     * Server of game
+     */
     private MinecraftServer server;
+    /**
+     * List of players that joined game
+     */
     private ArrayList<ServerPlayerEntity> players = new ArrayList<>();
-    private final int maxPlayers = 20;
+    /**
+     * Max number of players that can join game
+     */
+    private int maxPlayers = 20;
+    /**
+     * Max number of players in team
+     */
     private final int maxPlayersForTeam = maxPlayers/4;
-    private final int plotXbyZ = 60;
-    private final Vec3d lobbyPlace = new Vec3d(0, 60, 0);
+    /**
+     * Max size of plot (X,Z)
+     */
+    private int plotXbyZ = 60 * 6;
+    /**
+     * Spawn place (the place before staring of game) X,Y,Z
+     */
     private Vec3d spawnPlace = new Vec3d(0, 60, 0);
-    private final ArrayList<Vec3d> teleportPlaces = new ArrayList<Vec3d>(Arrays.asList(
-            new Vec3d(0, 60, 0),
-            new Vec3d(0, 60, 0),
-            new Vec3d(0, 60, 0)
-    )); //TODO: Configurable through command
-    public Game(String name, ServerWorld world) {
+
+    /**
+     * @param name Name of game
+     * @param world World of game
+     */
+    public Game(String name, @NotNull ServerWorld world) {
         this.name = name;
         this.world = world;
         this.server = world.getServer();
     }
 
+    /**
+     * @return Value of spawnPlace
+     */
+    public Vec3d getSpawnCoords() {
+        return spawnPlace;
+    }
+
+    /**
+     * @return Value of world
+     */
+    public ServerWorld getWorld() {
+        return world;
+    }
+
+    /**
+     * @return Value of players
+     */
+    public ArrayList<ServerPlayerEntity> getPlayers() {
+        return players;
+    }
+
+    /**
+     * @return List of players by their name
+     */
+    public ArrayList<String> getPlayersByName() {
+        ArrayList<String> playersByName = new ArrayList<String>();
+        for(ServerPlayerEntity player : players) {
+            if(player == null) continue;
+            playersByName.add(player.getEntityName());
+        }
+        return playersByName;
+    }
+
+    /**
+     * Sets world of game
+     * @param world World to set for game
+     * @return 0 if good, -1 if it's already set
+     */
+    public int setWorld(ServerWorld world) {
+        if(getWorld() == world) return -1;
+        this.world = world;
+        return 0;
+    }
+
+    /**
+     * Sets coordinates of spawn place (place before game)
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @return 0 if good, -1 if it's already set
+     */
+    public int setSpawnCoords(double x, double y, double z) {
+        var place = new Vec3d(x,y,z);
+        if(place.equals(spawnPlace)) return -1;
+        spawnPlace = place;
+        return 0;
+    }
+
+    /**
+     * Adds player to list of players and teleports them to spawnPlace
+     * @param player Player to join
+     * @return 0 if good, -1 if there is too many players
+     */
     public int joinPlayer(ServerPlayerEntity player) {
         if(players.size() == maxPlayers) return -1;
         IEntityDataSaver playerData = (IEntityDataSaver)player;
@@ -49,6 +138,11 @@ public class Game {
         //TODO: Teleport to start
     }
 
+    /**
+     * Removes player from list of players and teleports to lobby
+     * @param player Player to leave
+     * @return 0 if good, -1 if player doesn't exist
+     */
     public int leavePlayer(ServerPlayerEntity player) {
         if(!players.contains(player)) return -1;
         players.remove(player);
@@ -69,7 +163,10 @@ public class Game {
         return 0;
     }
 
-
+    /**
+     * Removes game from Database and runs leavePlayer for each player
+     * @return 0 if good, -1 if game doesn't exist
+     */
     public int removeGame() {
         if(!Database.ifGameExist(this)) return -1;
         Database.removeGame(this);
@@ -77,61 +174,41 @@ public class Game {
         return 0;
     }
 
+    /**
+     * Starts game event
+     * @return TODO
+     */
     public int startGame() {
         //TODO: teleport players to game
         //TODO: start game event
         return -1;
     }
 
-    public int stopGame() {
+    /**
+     * Starts end game event
+     * @return TODO
+     */
+    public int endGame() {
         //TODO: teleport players to spawn
         //TODO: stop game event
         return -1;
     }
 
-    public int killPlayer(ServerPlayerEntity player) {
-        if(!players.contains(player)) return -1;
+    /**
+     * Teleport player to middle of map and makes them spectator
+     * @param player Player that died
+     */
+    public void killPlayer(@NotNull ServerPlayerEntity player) {
         player.changeGameMode(GameMode.getOrNull(3));
+        leavePlayer(player);
         //TODO: Spawn them on middle of map
-        return 0;
     }
 
+    /**
+     * @return Name of game
+     */
     @Override
     public String toString() {
         return name;
-    }
-
-    public ServerWorld getWorld() {
-        return world;
-    }
-
-    public ArrayList<ServerPlayerEntity> getPlayers() {
-        return players;
-    }
-
-    public ArrayList<String> getPlayersByName() {
-        ArrayList<String> playersByName = new ArrayList<String>();
-        for(ServerPlayerEntity player : players) {
-            if(player == null) continue;
-            playersByName.add(player.getEntityName());
-        }
-        return playersByName;
-    }
-
-    public int setWorld(ServerWorld world) {
-        if(getWorld() == world) return -1;
-        this.world = world;
-        return 0;
-    }
-
-    public int setSpawnCoords(int x, int y, int z) {
-        var place = new Vec3d(x,y,z);
-        if(place.equals(spawnPlace)) return -1;
-        spawnPlace = place;
-        return 0;
-    }
-
-    public int[] getSpawnCoords() {
-        return new int[]{(int) spawnPlace.x, (int) spawnPlace.y, (int) spawnPlace.z};
     }
 }

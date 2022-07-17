@@ -10,6 +10,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+
+/**
+ * Command for removing game
+ * Usage: `/game admin removegame {game}`
+ */
 public class RemoveGame {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Game game = GameArgumentType.getGame( context,"game");

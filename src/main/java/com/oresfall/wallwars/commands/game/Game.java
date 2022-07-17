@@ -7,6 +7,7 @@ import com.oresfall.wallwars.commands.game.admin.CreateGame;
 import com.oresfall.wallwars.commands.game.admin.GamesInfo;
 import com.oresfall.wallwars.commands.game.admin.RemoveGame;
 import com.oresfall.wallwars.commands.game.admin.settings.ChangeWorld;
+import com.oresfall.wallwars.commands.game.admin.settings.SetLobbyCoords;
 import com.oresfall.wallwars.commands.game.admin.settings.SetSpawnCoords;
 import com.oresfall.wallwars.commands.game.player.Join;
 import com.oresfall.wallwars.commands.game.player.Leave;
@@ -16,9 +17,19 @@ import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Class for game command
+ */
 public class Game {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
+    /**
+     * Register all commands
+     * @param dispatcher
+     * @param commandRegistryAccess
+     * @param registrationEnvironment
+     */
+    public static void register(@NotNull CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
         dispatcher.register(
                 CommandManager.literal("game")
                         .then(
@@ -76,6 +87,13 @@ public class Game {
                                                                                                 CommandManager.argument("coords", BlockPosArgumentType.blockPos())
                                                                                                         .executes(SetSpawnCoords::run)
                                                                                         )
+                                                                        )
+                                                        ).then(
+                                                                CommandManager.literal("setlobbycoords")
+                                                                        .then(
+                                                                                CommandManager.argument("coords", BlockPosArgumentType.blockPos())
+                                                                                        .executes(SetLobbyCoords::run)
+
                                                                         )
                                                         )
                                         )

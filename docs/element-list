@@ -1,0 +1,11 @@
+com.oresfall.wallwars
+com.oresfall.wallwars.commands
+com.oresfall.wallwars.commands.argumenttype
+com.oresfall.wallwars.commands.game
+com.oresfall.wallwars.commands.game.admin
+com.oresfall.wallwars.commands.game.admin.settings
+com.oresfall.wallwars.commands.game.player
+com.oresfall.wallwars.db
+com.oresfall.wallwars.events
+com.oresfall.wallwars.mixin
+com.oresfall.wallwars.utls

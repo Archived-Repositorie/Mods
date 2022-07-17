@@ -9,9 +9,15 @@ import net.minecraft.util.Identifier;
 
 import static com.oresfall.wallwars.Main.modid;
 
+/**
+ * Commands stuff
+ */
 public class Commands {
+    /**
+     * Register commands and commands like stuff
+     */
     public static void register() {
         CommandRegistrationCallback.EVENT.register(Game::register);
-        ArgumentTypeRegistry.registerArgumentType(new Identifier(modid,"games"), GameArgumentType.class,  ConstantArgumentSerializer.of(GameArgumentType::game));
+        ArgumentTypeRegistry.registerArgumentType(new Identifier(modid,"game"), GameArgumentType.class,  ConstantArgumentSerializer.of(GameArgumentType::game));
     }
 }

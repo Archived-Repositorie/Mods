@@ -11,7 +11,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-
+/**
+ * Command for setting spawn (before game) for game
+ * Usage: `/game admin settings setspawncoords {game} {x} {y} {z}`
+ */
 public class SetSpawnCoords {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Game game = GameArgumentType.getGame(context,"game");
@@ -23,7 +26,7 @@ public class SetSpawnCoords {
             return -1;
         }
         if(game.setSpawnCoords(blockPos.getX(), blockPos.getY(), blockPos.getZ()) == -1) {
-            target.sendMessage(Text.empty().append("Those coords already exist").formatted(Formatting.RED));
+            target.sendMessage(Text.empty().append("Those coords are already set").formatted(Formatting.RED));
             return -1;
         }
 

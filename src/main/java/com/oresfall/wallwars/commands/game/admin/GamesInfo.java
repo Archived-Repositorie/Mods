@@ -8,14 +8,19 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
+/**
+ * Command for getting info about all games
+ * Usage: `/game admin gamesinfo`
+ */
 public class GamesInfo {
-    public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
 
-        if(Database.getGames().size() < 0 || Database.getGames() == null) {
+        if(Database.getGames() == null || Database.getGames().size() < 0) {
             target.sendMessage(Text.empty().append("There is no games registered").formatted(Formatting.RED));
             return -1;
         }
@@ -35,7 +40,7 @@ public class GamesInfo {
                     Arrays.deepToString(game.getPlayersByName().toArray()),
                     game.getPlayers().size(),
                     game.getWorld().getRegistryKey().getValue(),
-                    Arrays.toString(game.getSpawnCoords())
+                    Arrays.toString(new double[]{game.getSpawnCoords().x, game.getSpawnCoords().y, game.getSpawnCoords().z})
             )));
         }
         return 0;

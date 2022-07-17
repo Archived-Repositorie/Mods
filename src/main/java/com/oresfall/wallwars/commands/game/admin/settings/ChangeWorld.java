@@ -12,6 +12,11 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+
+/**
+ * COmmand for changing world of game
+ * Usage: `/game admin settings changeworld {game} {world}`
+ */
 public class ChangeWorld {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Game game = GameArgumentType.getGame(context,"game");
@@ -27,7 +32,6 @@ public class ChangeWorld {
             return game.setWorld(world);
         }
         target.sendMessage(Text.of(String.format("Changed world %s", world.getRegistryKey().getValue().toString())));
-
         return 0;
     }
 }

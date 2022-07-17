@@ -9,6 +9,9 @@ import com.oresfall.wallwars.Game;
 import com.oresfall.wallwars.db.Database;
 import net.minecraft.text.Text;
 
+/**
+ * Command argument for games (REQUIRE CLIENT-SIDE)
+ */
 public class GameArgumentType implements ArgumentType<Game> {
     public static GameArgumentType game() {
         return new GameArgumentType();

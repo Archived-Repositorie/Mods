@@ -4,20 +4,35 @@ import com.oresfall.wallwars.db.Database;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 
-import java.util.Arrays;
-
+/**
+ * Class for server events
+ */
 public class EventServer {
+    /**
+     * Event after staring server
+     * @param server
+     */
     private static void Started(MinecraftServer server) {
         Database.readGames(server);
-        System.out.println(Arrays.deepToString(Database.getGamesByName().toArray()));
     }
+    /**
+     * Event when server starts
+     * @param server
+     */
     private static void Starting(MinecraftServer server) {
 
     }
+    /**
+     * Event when server is stopping
+     * @param server
+     */
     private static void Stopping(MinecraftServer server) {
         Database.saveGames();
     }
 
+    /**
+     * Register events
+     */
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(EventServer::Started);
         ServerLifecycleEvents.SERVER_STARTING.register(EventServer::Starting);

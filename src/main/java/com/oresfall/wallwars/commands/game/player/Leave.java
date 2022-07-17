@@ -9,9 +9,14 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Command for leaving from game
+ * Usage: `/game player leave`
+ */
 public class Leave {
-    public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
         IEntityDataSaver targetData = (IEntityDataSaver)target;
         Game game = null;

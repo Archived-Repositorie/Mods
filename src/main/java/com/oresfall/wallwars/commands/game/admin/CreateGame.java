@@ -12,6 +12,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+/**
+ * Command for creating new game
+ * Usage: `/game admin creategame {game} {world}`
+ */
 public class CreateGame {
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String gameName = StringArgumentType.getString(context,"name");
@@ -24,8 +28,7 @@ public class CreateGame {
         }
         Game game = new Game(gameName,world);
         Database.addGame(game);
-        target.sendMessage(Text.of(String.format("Created new minigame %s", game)));
-
+        target.sendMessage(Text.of(String.format("Created new game %s", game)));
         return 0;
     }
 }
