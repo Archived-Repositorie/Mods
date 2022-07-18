@@ -98,10 +98,10 @@ public class Game {
      * @param world World to set for game
      * @return 0 if good, -1 if it's already set
      */
-    public int setWorld(ServerWorld world) {
-        if(getWorld() == world) return -1;
+    public boolean setWorld(ServerWorld world) {
+        if(getWorld() == world) return false;
         this.world = world;
-        return 0;
+        return true;
     }
 
     /**
@@ -111,11 +111,11 @@ public class Game {
      * @param z Z coordinate
      * @return 0 if good, -1 if it's already set
      */
-    public int setSpawnCoords(double x, double y, double z) {
+    public boolean setSpawnCoords(double x, double y, double z) {
         var place = new Vec3d(x,y,z);
-        if(place.equals(spawnPlace)) return -1;
+        if(place.equals(spawnPlace)) return false;
         spawnPlace = place;
-        return 0;
+        return true;
     }
 
     /**
@@ -123,8 +123,8 @@ public class Game {
      * @param player Player to join
      * @return 0 if good, -1 if there is too many players
      */
-    public int joinPlayer(ServerPlayerEntity player) {
-        if(players.size() == maxPlayers) return -1;
+    public boolean joinPlayer(ServerPlayerEntity player) {
+        if(players.size() == maxPlayers) return false;
         IEntityDataSaver playerData = (IEntityDataSaver)player;
 
         playerData.getPersistentData().putLongArray("LocationBefore", new long[]{
@@ -134,8 +134,7 @@ public class Game {
         });
         playerData.getPersistentData().putString("DimBefore", player.getEntityWorld().getRegistryKey().getValue().toString());
         players.add(player);
-        return 0;
-        //TODO: Teleport to start
+        return true;
     }
 
     /**
@@ -143,8 +142,8 @@ public class Game {
      * @param player Player to leave
      * @return 0 if good, -1 if player doesn't exist
      */
-    public int leavePlayer(ServerPlayerEntity player) {
-        if(!players.contains(player)) return -1;
+    public boolean leavePlayer(ServerPlayerEntity player) {
+        if(!players.contains(player)) return false;
         players.remove(player);
 
         IEntityDataSaver playerData = (IEntityDataSaver)player;
@@ -160,18 +159,18 @@ public class Game {
                 player.getYaw(),
                 player.getPitch()
         ));
-        return 0;
+        return true;
     }
 
     /**
      * Removes game from Database and runs leavePlayer for each player
      * @return 0 if good, -1 if game doesn't exist
      */
-    public int removeGame() {
-        if(!Database.ifGameExist(this)) return -1;
+    public boolean removeGame() {
+        if(!Database.ifGameExist(this)) return false;
         Database.removeGame(this);
         players.forEach(this::leavePlayer);
-        return 0;
+        return true;
     }
 
     /**

@@ -13,6 +13,7 @@ public class EventServer {
      * @param server
      */
     private static void Started(MinecraftServer server) {
+
         Database.readGames(server);
     }
     /**

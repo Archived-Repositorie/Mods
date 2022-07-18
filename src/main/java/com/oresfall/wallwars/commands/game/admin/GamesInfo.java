@@ -20,12 +20,9 @@ public class GamesInfo {
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
 
-        if(Database.getGames() == null || Database.getGames().size() < 0) {
-            target.sendMessage(Text.empty().append("There is no games registered").formatted(Formatting.RED));
-            return -1;
-        }
-
-        target.sendMessage(Text.of("Info about games"));
+        target.sendMessage(Text.literal("Info about games")
+                .formatted(Formatting.BLUE)
+        );
         for(Game game : Database.getGames()) {
             if(game == null) continue;
             target.sendMessage(Text.of(String.format(

@@ -4,19 +4,13 @@ import com.google.gson.Gson;
 import com.oresfall.wallwars.Game;
 import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.utls.Utils;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Class for saving stuff
@@ -30,6 +24,8 @@ public class Database {
      * Place of lobby
      */
     private static Vec3d lobbyCoords = new Vec3d(0, 60, 0);
+    private static ServerWorld lobbyWorld;
+
     public static ArrayList<Game> getGames() {
         return games;
     }
@@ -39,6 +35,9 @@ public class Database {
      */
     public static Vec3d getLobbyCoords() {
         return lobbyCoords;
+    }
+    public static ServerWorld getLobbyWorld() {
+        return lobbyWorld;
     }
     /**
      * Gets game by its name
@@ -80,11 +79,12 @@ public class Database {
      * @param z Z coordinate
      * @return 0 if good, -1 if it's already set
      */
-    public static int setLobby(double x, double y, double z) {
+    public static boolean setLobby(ServerWorld world,double x, double y, double z) {
         Vec3d coords = new Vec3d(x,y,z);
-        if(coords == lobbyCoords) return -1;
+        if(coords == lobbyCoords) return false;
         lobbyCoords = coords;
-        return 0;
+        lobbyWorld = world;
+        return true;
     }
 
     /**
@@ -93,6 +93,21 @@ public class Database {
      * @return false/true
      */
     public static boolean ifGameExist(Game game) {
+        if(game == null) {
+            return false;
+        }
+        System.out.println(Database.getGamesByName());
+        System.out.println(game);
+        return games.contains(game);
+    }
+
+    /**
+     * Checks if game by name is in database
+     * @param name Name of game to check
+     * @return false/true
+     */
+    public static boolean ifGameExist(String name) {
+        Game game = getGameByName(name);
         if(game == null) {
             return false;
         }
@@ -113,16 +128,10 @@ public class Database {
      * Saves games to json file
      */
     public static void saveGames() {
+        Utils util = new Utils();
         Gson gson = new Gson();
-        String json = gson.toJson(new SaveGame(games));
-        String configDir = FabricLoader.getInstance().getConfigDir().toString();
-        try {
-            PrintWriter writer = new PrintWriter(configDir+"/"+Main.modid+"/data.json", StandardCharsets.UTF_8);
-            writer.println(json);
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String data = gson.toJson(Config.class);
+        util.writeJsonFile(Main.configFile, data);
     }
 
     /**
@@ -130,22 +139,20 @@ public class Database {
      * @param server Game server
      */
     public static void readGames(MinecraftServer server) {
-        Gson gson = new Gson();
-        String configDir = FabricLoader.getInstance().getConfigDir().toString();
-        File myObj = new File(configDir+"/"+Main.modid+"/data.json");
-        String data = "";
-        try {
-            Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-                data+=(myReader.nextLine());
-            }
-            myReader.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+        Utils util = new Utils();
+        setLobby(server.getOverworld(), 0, 60, 0);
+        Config configData = util.readJsonFile(Main.configFile, Config.class);
+        if(configData.global == null) {
+            setLobby(server.getOverworld(), 0,60,0);
+        } else {
+            setLobby(Utils.getWorldByName(server,configData.global.world),
+                    configData.global.coords[0],
+                    configData.global.coords[1],
+                    configData.global.coords[2]
+            );
         }
-        SaveGame gamesData = gson.fromJson(data,SaveGame.class);
-        if(gamesData.games == null) return;
-        for(SaveGame.Template gameData : gamesData.games) {
+        if(configData.games == null) return;
+        for(Config.GamesTemplate gameData : configData.games) {
             if(getGameByName(gameData.name) != null) continue;
             Game game = new Game(gameData.name, Utils.getWorldByName(server, gameData.world));
             game.setSpawnCoords(gameData.spawnCoords[0], gameData.spawnCoords[1], gameData.spawnCoords[2]);
