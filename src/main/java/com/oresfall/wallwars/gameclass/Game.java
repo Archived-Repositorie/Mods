@@ -1,5 +1,6 @@
-package com.oresfall.wallwars;
+package com.oresfall.wallwars.gameclass;
 
+import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.utls.Utils;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;

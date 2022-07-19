@@ -23,6 +23,9 @@ public class Main implements ModInitializer {
 	 */
 	public static final Logger LOGGER = LoggerFactory.getLogger(modid);
 
+	/**
+	 * Place of configuration file
+	 */
 	public static final String configFile = format("%s/%s/data.json", FabricLoader.getInstance().getConfigDir(), modid);
 
 	/**

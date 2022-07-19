@@ -1,6 +1,6 @@
 package com.oresfall.wallwars.events;
 
-import com.oresfall.wallwars.Game;
+import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;

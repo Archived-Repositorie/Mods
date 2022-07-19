@@ -37,14 +37,30 @@ public class Utils {
         return null;
     }
 
+    /**
+     * Makes message green/bold
+     * @param text Message
+     * @return
+     */
     public static Text defaultMsg(@NotNull String text) {
         return Text.literal(text).formatted(Formatting.GREEN, Formatting.BOLD);
     }
-
+    /**
+     * Makes message red/bold
+     * @param text Message
+     * @return
+     */
     public static Text errorMsg(@NotNull String text) {
         return Text.literal(text).formatted(Formatting.RED, Formatting.BOLD);
     }
 
+    /**
+     * Reads file to json
+     * @param fileDir File to read
+     * @param object Template to generate json
+     * @param <T>
+     * @return
+     */
     public <T> T readJsonFile(String fileDir, Class<T> object) {
         File file = new File(fileDir);
         StringBuilder data = new StringBuilder();
@@ -60,7 +76,12 @@ public class Utils {
         return gson.fromJson(data.toString(), object);
     }
 
+    /**
+     * Writes file with json
+     * @param fileDir File to write
+     */
     public void writeJsonFile(String fileDir, String json) {
+
         try {
             PrintWriter writer = new PrintWriter(fileDir, StandardCharsets.UTF_8);
             writer.println(json);

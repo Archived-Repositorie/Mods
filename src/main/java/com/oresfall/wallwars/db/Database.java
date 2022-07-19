@@ -1,8 +1,8 @@
 package com.oresfall.wallwars.db;
 
 import com.google.gson.Gson;
-import com.oresfall.wallwars.Game;
 import com.oresfall.wallwars.Main;
+import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -130,8 +130,8 @@ public class Database {
     public static void saveGames() {
         Utils util = new Utils();
         Gson gson = new Gson();
-        String data = gson.toJson(Config.class);
-        util.writeJsonFile(Main.configFile, data);
+        String json = gson.toJson(new Config());
+        util.writeJsonFile(Main.configFile, json);
     }
 
     /**
