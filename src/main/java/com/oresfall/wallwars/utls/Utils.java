@@ -1,6 +1,7 @@
 package com.oresfall.wallwars.utls;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -19,7 +20,9 @@ import java.util.Scanner;
  * Utilities to make life easier
  */
 public class Utils {
-    private static final Gson gson = new Gson();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public static final int MIN = 60*20;
+    public static final int SEC = 20;
     /**
      * Function to get world just by name
      *
@@ -90,4 +93,5 @@ public class Utils {
             throw new RuntimeException(e);
         }
     }
+
 }

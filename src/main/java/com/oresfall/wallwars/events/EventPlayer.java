@@ -23,6 +23,7 @@ public class EventPlayer {
      */
     private static void Join(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer server) {
         leaving(serverPlayNetworkHandler);
+        Database.addPlayerToDefaultTeam(serverPlayNetworkHandler.getPlayer());
     }
 
     /**
@@ -50,10 +51,12 @@ public class EventPlayer {
     private static void leaving(@NotNull ServerPlayNetworkHandler serverPlayNetworkHandler) {
         ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
         IEntityDataSaver targetData = (IEntityDataSaver)player;
+
         for(Game game : Database.getGames()) {
             if(game == null) continue;
             game.leavePlayer(player);
             targetData.getPersistentData().putBoolean("JoinedGame",false);
         }
+        Database.addPlayerToDefaultTeam(player);
     }
 }

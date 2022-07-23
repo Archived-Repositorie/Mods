@@ -1,6 +1,7 @@
 package com.oresfall.wallwars.db;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Formatting;
 
 /**
  * Class for saving games to json file
@@ -24,6 +25,13 @@ class Config {
          * 3 items big array
          */
         public double[] spawnCoords = new double[3];
+    }
+
+    public static class DefaultTeamTemplate {
+        public String name = "";
+        public String prefix = "";
+        public Formatting color = Formatting.WHITE;
+        public boolean pvp = false;
     }
 
     public static class GlobalTemplate {

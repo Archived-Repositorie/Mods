@@ -3,13 +3,14 @@ package com.oresfall.wallwars.gameclass;
 import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.utls.Utils;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class Game {
      * Spawn place (the place before staring of game) X,Y,Z
      */
     private Vec3d spawnPlace = new Vec3d(0, 60, 0);
+    private TeamBase[] teams = new TeamBase[4];
 
     /**
      * @param name Name of game
@@ -59,6 +61,7 @@ public class Game {
         this.name = name;
         this.world = world;
         this.server = world.getServer();
+        createTeams();
     }
 
     /**
@@ -146,20 +149,8 @@ public class Game {
     public boolean leavePlayer(ServerPlayerEntity player) {
         if(!players.contains(player)) return false;
         players.remove(player);
-
-        IEntityDataSaver playerData = (IEntityDataSaver)player;
-        long[] playerBeforePos = playerData.getPersistentData().getLongArray("LocationBefore");
-        ServerWorld playerBeforeDim = Utils.getWorldByName(player.getServer(), ((IEntityDataSaver)player).getPersistentData().getString("DimBefore"));
-        FabricDimensions.teleport(player, playerBeforeDim, new TeleportTarget(
-                new Vec3d(
-                        playerBeforePos[0],
-                        playerBeforePos[1],
-                        playerBeforePos[2]
-                ),
-                player.getVelocity(),
-                player.getYaw(),
-                player.getPitch()
-        ));
+        Database.tpPlayerToLobby(player);
+        Database.addPlayerToDefaultTeam(player);
         return true;
     }
 
@@ -202,6 +193,87 @@ public class Game {
         player.changeGameMode(GameMode.getOrNull(3));
         leavePlayer(player);
         //TODO: Spawn them on middle of map
+    }
+
+    private int time;
+    //minutes - seconds - ticks
+    private final int startTime = 5 * Utils.MIN;
+    private int phase = -1;
+    public void onTick(MinecraftServer server) {
+        if(phase == -1) {
+            if(players.size() <= 0) {
+                time = 0;
+                return;
+            }
+            switch (time) {
+                case 0 ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("5 minutes"), MessageType.SYSTEM);
+                case Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("4 minutes"), MessageType.SYSTEM);
+                case 2 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("3 minutes"), MessageType.SYSTEM);
+                case 3 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("2 minutes"), MessageType.SYSTEM);
+                case 4 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("1 minute"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 30 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("30"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 45 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("15"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 50 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("10"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 55 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("5"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 56 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("4"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 57 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("3"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 58 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("2"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 59 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("1"), MessageType.SYSTEM);
+                case startTime -> {
+                    server.getPlayerManager().broadcast(Utils.defaultMsg("Start!"), MessageType.SYSTEM);
+                    phase = 0;
+                }
+            }
+        } else if (phase == 0) {
+            int i = 1;
+            for(ServerPlayerEntity player : players) {
+                Database.removePlayerToDefaultTeam(player);
+                if(i % 5 == 0) i = 1;
+                teams[i-1].addPlayer(player);
+                i++;
+            }
+            phase = 1;
+        } else if(phase == 1) {
+            for(TeamBase team : teams) {
+                team.teleportPlayers();
+            }
+        }
+        time++;
+    }
+    private void createTeams() {
+        TeamBase limeTeam = new TeamBase(server,"lime_".concat(name));
+        TeamBase pinkTeam = new TeamBase(server,"pink_".concat(name));
+        TeamBase cyanTeam = new TeamBase(server,"cyan_".concat(name));
+        TeamBase grayTeam = new TeamBase(server,"gray_".concat(name));
+        limeTeam.setPrefix(Text.literal("LIME ").formatted(Formatting.BOLD));
+        pinkTeam.setPrefix(Text.literal("PINK ").formatted(Formatting.BOLD));
+        cyanTeam.setPrefix(Text.literal("CYAN ").formatted(Formatting.BOLD));
+        grayTeam.setPrefix(Text.literal("GRAY ").formatted(Formatting.BOLD));
+        limeTeam.setColor(Formatting.GREEN);
+        pinkTeam.setColor(Formatting.LIGHT_PURPLE);
+        cyanTeam.setColor(Formatting.AQUA);
+        grayTeam.setColor(Formatting.GRAY);
+        limeTeam.enablePvp(false);
+        pinkTeam.enablePvp(false);
+        cyanTeam.enablePvp(false);
+        grayTeam.enablePvp(false);
+        teams[0] = limeTeam;
+        teams[1] = pinkTeam;
+        teams[2] = cyanTeam;
+        teams[3] = grayTeam;
     }
 
     /**

@@ -8,6 +8,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class TeamBase {
     private ArrayList<ServerPlayerEntity> players = new ArrayList<>();
@@ -16,6 +17,24 @@ public class TeamBase {
     private Formatting color = Formatting.WHITE;
     private Vec3d spawnCoords = new Vec3d(0,60,0);
     private Team team;
+    private Formatting[] colors = new Formatting[] {
+            Formatting.WHITE,
+            Formatting.RED,
+            Formatting.GREEN,
+            Formatting.AQUA,
+            Formatting.BLACK,
+            Formatting.BLUE,
+            Formatting.DARK_AQUA,
+            Formatting.DARK_BLUE,
+            Formatting.DARK_GRAY,
+            Formatting.DARK_GREEN,
+            Formatting.DARK_PURPLE,
+            Formatting.DARK_RED,
+            Formatting.GOLD,
+            Formatting.GRAY,
+            Formatting.LIGHT_PURPLE,
+            Formatting.YELLOW,
+    };
 
     public TeamBase(MinecraftServer server, String name) {
         this.team = new Team(server.getScoreboard(), name);
@@ -24,6 +43,12 @@ public class TeamBase {
 
     public void setColor(Formatting color) {
         team.setColor(color);
+    }
+
+    public void setRandomColor() {
+        Random generator = new Random();
+        int i = generator.nextInt(colors.length);
+        team.setColor(colors[i]);
     }
 
     public void setSpawnCoords(double x, double y, double z) {
@@ -36,5 +61,19 @@ public class TeamBase {
 
     public void setPrefix(Text text) {
         team.setPrefix(text);
+    }
+
+    public void addPlayer(ServerPlayerEntity player) {
+        this.players.add(player);
+        this.team.getScoreboard().addPlayerToTeam(player.getEntityName(),this.team);
+    }
+
+    public void removePlayer(ServerPlayerEntity player) {
+        this.players.remove(player);
+        this.team.getScoreboard().removePlayerFromTeam(player.getEntityName(), this.team);
+    }
+
+    public void teleportPlayers() {
+        //TODO: Teleport players to place
     }
 }

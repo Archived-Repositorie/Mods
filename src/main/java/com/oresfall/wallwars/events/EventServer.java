@@ -2,6 +2,7 @@ package com.oresfall.wallwars.events;
 
 import com.oresfall.wallwars.db.Database;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 
 /**
@@ -13,8 +14,9 @@ public class EventServer {
      * @param server
      */
     private static void Started(MinecraftServer server) {
-
         Database.readGames(server);
+        Database.setDefaultTeam(server,"default");
+        ServerTickEvents.START_SERVER_TICK.register(Database::onEveryTick);
     }
     /**
      * Event when server starts

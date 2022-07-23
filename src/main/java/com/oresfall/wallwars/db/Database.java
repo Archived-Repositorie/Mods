@@ -1,12 +1,19 @@
 package com.oresfall.wallwars.db;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.gameclass.Game;
+import com.oresfall.wallwars.gameclass.TeamBase;
 import com.oresfall.wallwars.utls.Utils;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -25,6 +32,8 @@ public class Database {
      */
     private static Vec3d lobbyCoords = new Vec3d(0, 60, 0);
     private static ServerWorld lobbyWorld;
+
+    private static TeamBase defaultTeam;
 
     public static ArrayList<Game> getGames() {
         return games;
@@ -129,7 +138,7 @@ public class Database {
      */
     public static void saveGames() {
         Utils util = new Utils();
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(new Config());
         util.writeJsonFile(Main.configFile, json);
     }
@@ -158,5 +167,35 @@ public class Database {
             game.setSpawnCoords(gameData.spawnCoords[0], gameData.spawnCoords[1], gameData.spawnCoords[2]);
             Database.addGame(game);
         }
+    }
+
+    public static void tpPlayerToLobby(ServerPlayerEntity player) {
+        FabricDimensions.teleport(
+                player,
+                lobbyWorld,
+                new TeleportTarget(lobbyCoords, player.getVelocity(), player.getYaw(), player.prevPitch)
+        );
+    }
+
+    private static int time;
+
+    public static void onEveryTick(MinecraftServer server) {
+        for(Game game : games) {
+            game.onTick(server);
+        }
+    }
+
+    public static void setDefaultTeam(MinecraftServer server, String teamName) {
+        defaultTeam = new TeamBase(server,teamName);
+        defaultTeam.setColor(Formatting.WHITE);
+        defaultTeam.enablePvp(false);
+        defaultTeam.setPrefix(Text.literal("PLAYER ").formatted(Formatting.BOLD));
+    }
+
+    public static void addPlayerToDefaultTeam(ServerPlayerEntity player) {
+        defaultTeam.addPlayer(player);
+    }
+    public static void removePlayerToDefaultTeam(ServerPlayerEntity player) {
+        defaultTeam.removePlayer(player);
     }
 }
