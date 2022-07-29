@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
+import com.oresfall.wallwars.playerclass.Player;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -20,7 +21,7 @@ public class RemoveGame {
         ServerPlayerEntity target = context.getSource().getPlayer();
 
         game.removeGame();
-        for(ServerPlayerEntity player : game.getPlayers()) {
+        for(Player player : game.getPlayers()) {
             game.leavePlayer(player);
         }
 

@@ -5,10 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.gameclass.TeamBase;
+import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -34,6 +35,7 @@ public class Database {
     private static ServerWorld lobbyWorld;
 
     private static TeamBase defaultTeam;
+    private static ArrayList<Player> players;
 
     public static ArrayList<Game> getGames() {
         return games;
@@ -79,6 +81,19 @@ public class Database {
      */
     public static void addGame(Game game) {
         games.add(game);
+    }
+
+    public static void addPlayer(Player player) {
+        players.add(player);
+    }
+
+    public static @Nullable Player getPlayer(PlayerEntity playerEntity) {
+        for(Player player : players) {
+            if(player.getPlayerEntity() == playerEntity) {
+                return player;
+            }
+        }
+        return null;
     }
 
     /**
@@ -169,11 +184,11 @@ public class Database {
         }
     }
 
-    public static void tpPlayerToLobby(ServerPlayerEntity player) {
+    public static void tpPlayerToLobby(Player player) {
         FabricDimensions.teleport(
-                player,
+                player.getPlayerEntity(),
                 lobbyWorld,
-                new TeleportTarget(lobbyCoords, player.getVelocity(), player.getYaw(), player.prevPitch)
+                new TeleportTarget(lobbyCoords, player.getPlayerEntity().getVelocity(), player.getPlayerEntity().getYaw(), player.getPlayerEntity().prevPitch)
         );
     }
 
@@ -192,10 +207,10 @@ public class Database {
         defaultTeam.setPrefix(Text.literal("PLAYER ").formatted(Formatting.BOLD));
     }
 
-    public static void addPlayerToDefaultTeam(ServerPlayerEntity player) {
+    public static void addPlayerToDefaultTeam(Player player) {
         defaultTeam.addPlayer(player);
     }
-    public static void removePlayerToDefaultTeam(ServerPlayerEntity player) {
+    public static void removePlayerToDefaultTeam(Player player) {
         defaultTeam.removePlayer(player);
     }
 }

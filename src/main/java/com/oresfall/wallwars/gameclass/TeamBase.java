@@ -1,5 +1,6 @@
 package com.oresfall.wallwars.gameclass;
 
+import com.oresfall.wallwars.playerclass.Player;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -63,14 +64,16 @@ public class TeamBase {
         team.setPrefix(text);
     }
 
-    public void addPlayer(ServerPlayerEntity player) {
-        this.players.add(player);
-        this.team.getScoreboard().addPlayerToTeam(player.getEntityName(),this.team);
+    public void addPlayer(Player player) {
+        this.players.add(player.getPlayerEntity());
+        this.team.getScoreboard().addPlayerToTeam(player.getName(),this.team);
+        player.setTeam(this);
     }
 
-    public void removePlayer(ServerPlayerEntity player) {
+    public void removePlayer(Player player) {
         this.players.remove(player);
-        this.team.getScoreboard().removePlayerFromTeam(player.getEntityName(), this.team);
+        player.setTeam(null);
+        this.team.getScoreboard().removePlayerFromTeam(player.getName(), this.team);
     }
 
     public void teleportPlayers() {

@@ -2,15 +2,14 @@ package com.oresfall.wallwars.gameclass;
 
 import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -34,15 +33,11 @@ public class Game {
     /**
      * List of players that joined game
      */
-    private ArrayList<ServerPlayerEntity> players = new ArrayList<>();
+    private ArrayList<Player> players;
     /**
      * Max number of players that can join game
      */
     private int maxPlayers = 20;
-    /**
-     * Max number of players in team
-     */
-    private final int maxPlayersForTeam = maxPlayers/4;
     /**
      * Max size of plot (X,Z)
      */
@@ -81,7 +76,7 @@ public class Game {
     /**
      * @return Value of players
      */
-    public ArrayList<ServerPlayerEntity> getPlayers() {
+    public ArrayList<Player> getPlayers() {
         return players;
     }
 
@@ -90,9 +85,9 @@ public class Game {
      */
     public ArrayList<String> getPlayersByName() {
         ArrayList<String> playersByName = new ArrayList<String>();
-        for(ServerPlayerEntity player : players) {
+        for(Player player : players) {
             if(player == null) continue;
-            playersByName.add(player.getEntityName());
+            playersByName.add(player.getName());
         }
         return playersByName;
     }
@@ -127,16 +122,16 @@ public class Game {
      * @param player Player to join
      * @return 0 if good, -1 if there is too many players
      */
-    public boolean joinPlayer(ServerPlayerEntity player) {
+    public boolean joinPlayer(Player player) {
         if(players.size() == maxPlayers) return false;
         IEntityDataSaver playerData = (IEntityDataSaver)player;
 
         playerData.getPersistentData().putLongArray("LocationBefore", new long[]{
-                (long)player.getX(),
-                (long)player.getY(),
-                (long)player.getZ()
+                (long)player.getPlayerEntity().getX(),
+                (long)player.getPlayerEntity().getY(),
+                (long)player.getPlayerEntity().getZ()
         });
-        playerData.getPersistentData().putString("DimBefore", player.getEntityWorld().getRegistryKey().getValue().toString());
+        playerData.getPersistentData().putString("DimBefore", player.getPlayerEntity().getEntityWorld().getRegistryKey().getValue().toString());
         players.add(player);
         return true;
     }
@@ -146,7 +141,7 @@ public class Game {
      * @param player Player to leave
      * @return 0 if good, -1 if player doesn't exist
      */
-    public boolean leavePlayer(ServerPlayerEntity player) {
+    public boolean leavePlayer(Player player) {
         if(!players.contains(player)) return false;
         players.remove(player);
         Database.tpPlayerToLobby(player);
@@ -165,35 +160,6 @@ public class Game {
         return true;
     }
 
-    /**
-     * Starts game event
-     * @return TODO
-     */
-    public int startGame() {
-        //TODO: teleport players to game
-        //TODO: start game event
-        return -1;
-    }
-
-    /**
-     * Starts end game event
-     * @return TODO
-     */
-    public int endGame() {
-        //TODO: teleport players to spawn
-        //TODO: stop game event
-        return -1;
-    }
-
-    /**
-     * Teleport player to middle of map and makes them spectator
-     * @param player Player that died
-     */
-    public void killPlayer(@NotNull ServerPlayerEntity player) {
-        player.changeGameMode(GameMode.getOrNull(3));
-        leavePlayer(player);
-        //TODO: Spawn them on middle of map
-    }
 
     private int time;
     //minutes - seconds - ticks
@@ -239,7 +205,7 @@ public class Game {
             }
         } else if (phase == 0) {
             int i = 1;
-            for(ServerPlayerEntity player : players) {
+            for(Player player : players) {
                 Database.removePlayerToDefaultTeam(player);
                 if(i % 5 == 0) i = 1;
                 teams[i-1].addPlayer(player);
@@ -249,6 +215,40 @@ public class Game {
         } else if(phase == 1) {
             for(TeamBase team : teams) {
                 team.teleportPlayers();
+            }
+        } else if(phase == 2) {
+            switch (time) {
+                case 0 ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("Walls will go down in 5 minutes!"), MessageType.SYSTEM);
+                case Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("4 minutes"), MessageType.SYSTEM);
+                case 2 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("3 minutes"), MessageType.SYSTEM);
+                case 3 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("2 minutes"), MessageType.SYSTEM);
+                case 4 * Utils.MIN ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("1 minute"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 30 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("30"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 45 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("15"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 50 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("10"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 55 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("5"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 56 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("4"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 57 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("3"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 58 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("2"), MessageType.SYSTEM);
+                case 4 * Utils.MIN + 59 * Utils.SEC ->
+                        server.getPlayerManager().broadcast(Utils.defaultMsg("1"), MessageType.SYSTEM);
+                case startTime -> {
+                    server.getPlayerManager().broadcast(Utils.defaultMsg("Walls go down!"), MessageType.SYSTEM);
+
+                    phase = 3;
+                }
             }
         }
         time++;
@@ -274,6 +274,10 @@ public class Game {
         teams[1] = pinkTeam;
         teams[2] = cyanTeam;
         teams[3] = grayTeam;
+    }
+
+    public void wallsDown() {
+    //TODO
     }
 
     /**

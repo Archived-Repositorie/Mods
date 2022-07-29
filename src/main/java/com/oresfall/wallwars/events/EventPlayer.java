@@ -1,8 +1,8 @@
 package com.oresfall.wallwars.events;
 
-import com.oresfall.wallwars.gameclass.Game;
-import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.gameclass.Game;
+import com.oresfall.wallwars.playerclass.Player;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
@@ -23,7 +23,7 @@ public class EventPlayer {
      */
     private static void Join(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer server) {
         leaving(serverPlayNetworkHandler);
-        Database.addPlayerToDefaultTeam(serverPlayNetworkHandler.getPlayer());
+        Database.addPlayerToDefaultTeam(Database.getPlayer(serverPlayNetworkHandler.getPlayer()));
     }
 
     /**
@@ -49,13 +49,14 @@ public class EventPlayer {
      * @param serverPlayNetworkHandler player
      */
     private static void leaving(@NotNull ServerPlayNetworkHandler serverPlayNetworkHandler) {
-        ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
-        IEntityDataSaver targetData = (IEntityDataSaver)player;
+        ServerPlayerEntity playerEntity = serverPlayNetworkHandler.getPlayer();
+        Player player = Database.getPlayer(playerEntity);
 
         for(Game game : Database.getGames()) {
             if(game == null) continue;
             game.leavePlayer(player);
-            targetData.getPersistentData().putBoolean("JoinedGame",false);
+            assert player != null;
+            player.leaveGame();
         }
         Database.addPlayerToDefaultTeam(player);
     }
