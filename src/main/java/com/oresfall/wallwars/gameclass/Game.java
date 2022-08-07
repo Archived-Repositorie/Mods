@@ -1,11 +1,11 @@
 package com.oresfall.wallwars.gameclass;
 
-import com.oresfall.wallwars.IEntityDataSaver;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -33,11 +33,12 @@ public class Game {
     /**
      * List of players that joined game
      */
-    private ArrayList<Player> players;
+    private ArrayList<Player> players = new ArrayList<>();
     /**
      * Max number of players that can join game
      */
-    private int maxPlayers = 20;
+    private int maxPlayers = 4;
+    private int minPlayers = 1;
     /**
      * Max size of plot (X,Z)
      */
@@ -124,15 +125,12 @@ public class Game {
      */
     public boolean joinPlayer(Player player) {
         if(players.size() == maxPlayers) return false;
-        IEntityDataSaver playerData = (IEntityDataSaver)player;
-
-        playerData.getPersistentData().putLongArray("LocationBefore", new long[]{
-                (long)player.getPlayerEntity().getX(),
-                (long)player.getPlayerEntity().getY(),
-                (long)player.getPlayerEntity().getZ()
-        });
-        playerData.getPersistentData().putString("DimBefore", player.getPlayerEntity().getEntityWorld().getRegistryKey().getValue().toString());
         players.add(player);
+        return true;
+    }
+    public boolean joinPlayer(ServerPlayerEntity target) {
+        if(players.size() == maxPlayers) return false;
+        players.add(Database.getPlayer(target));
         return true;
     }
 
@@ -144,7 +142,7 @@ public class Game {
     public boolean leavePlayer(Player player) {
         if(!players.contains(player)) return false;
         players.remove(player);
-        Database.tpPlayerToLobby(player);
+        Database.tpPlayerToLobby(player, player.getPlayerEntity().getServer());
         Database.addPlayerToDefaultTeam(player);
         return true;
     }
@@ -167,7 +165,8 @@ public class Game {
     private int phase = -1;
     public void onTick(MinecraftServer server) {
         if(phase == -1) {
-            if(players.size() <= 0) {
+            if(players == null) return;
+            if(players.size() < minPlayers) {
                 time = 0;
                 return;
             }

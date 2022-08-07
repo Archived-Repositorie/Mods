@@ -29,12 +29,13 @@ public class Join {
     }
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
-        Player player = Database.getPlayer(target);
         Game game = GameArgumentType.getGame( context,"game");
+        Player player = Database.getPlayer(target);
 
 
-        if(!player.joinGame(game)) {
-            target.sendMessage(errorMsg("You can't join game!"));
+        assert player != null;
+        if(player.getInGame()) {
+            target.sendMessage(errorMsg("You are already in game!"));
             return -1;
         }
 

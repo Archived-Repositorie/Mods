@@ -35,11 +35,20 @@ public class Database {
     private static ServerWorld lobbyWorld;
 
     private static TeamBase defaultTeam;
-    private static ArrayList<Player> players;
+
+    private static TeamBase spectatorTeam;
+    private static ArrayList<Player> players = new ArrayList<>();
+
+    private static Config config;
 
     public static ArrayList<Game> getGames() {
         return games;
     }
+
+    public static Config getConfig() {
+        return config;
+    }
+
 
     /**
      * @return Lobby coordinates
@@ -47,7 +56,8 @@ public class Database {
     public static Vec3d getLobbyCoords() {
         return lobbyCoords;
     }
-    public static ServerWorld getLobbyWorld() {
+    public static ServerWorld getLobbyWorld(MinecraftServer server) {
+        if(lobbyWorld == null) return server.getOverworld();
         return lobbyWorld;
     }
     /**
@@ -88,6 +98,7 @@ public class Database {
     }
 
     public static @Nullable Player getPlayer(PlayerEntity playerEntity) {
+        if(players == null) return null;
         for(Player player : players) {
             if(player.getPlayerEntity() == playerEntity) {
                 return player;
@@ -105,9 +116,10 @@ public class Database {
      */
     public static boolean setLobby(ServerWorld world,double x, double y, double z) {
         Vec3d coords = new Vec3d(x,y,z);
-        if(coords == lobbyCoords) return false;
+        if(coords.equals(lobbyCoords)) return false;
         lobbyCoords = coords;
         lobbyWorld = world;
+        Main.LOGGER.info(lobbyWorld.toString());
         return true;
     }
 
@@ -151,10 +163,10 @@ public class Database {
     /**
      * Saves games to json file
      */
-    public static void saveGames() {
+    public static void saveGames(MinecraftServer server) {
         Utils util = new Utils();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(new Config());
+        String json = gson.toJson(new Config(server));
         util.writeJsonFile(Main.configFile, json);
     }
 
@@ -162,7 +174,7 @@ public class Database {
      * Reads games from json file and adds them to database
      * @param server Game server
      */
-    public static void readGames(MinecraftServer server) {
+    public static void readConfigs(MinecraftServer server) {
         Utils util = new Utils();
         setLobby(server.getOverworld(), 0, 60, 0);
         Config configData = util.readJsonFile(Main.configFile, Config.class);
@@ -182,9 +194,11 @@ public class Database {
             game.setSpawnCoords(gameData.spawnCoords[0], gameData.spawnCoords[1], gameData.spawnCoords[2]);
             Database.addGame(game);
         }
+        config = configData;
     }
 
-    public static void tpPlayerToLobby(Player player) {
+    public static void tpPlayerToLobby(Player player, MinecraftServer server) {
+        if(lobbyWorld == null) lobbyWorld = server.getOverworld();
         FabricDimensions.teleport(
                 player.getPlayerEntity(),
                 lobbyWorld,
@@ -207,8 +221,31 @@ public class Database {
         defaultTeam.setPrefix(Text.literal("PLAYER ").formatted(Formatting.BOLD));
     }
 
+    public static void setSpectatorTeam(MinecraftServer server, String teamName) {
+        spectatorTeam = new TeamBase(server,teamName);
+        spectatorTeam.setColor(Formatting.GRAY);
+        spectatorTeam.enablePvp(false);
+        defaultTeam.setPrefix(Text.literal("DEAD ").formatted(Formatting.BOLD));
+    }
+
     public static void addPlayerToDefaultTeam(Player player) {
         defaultTeam.addPlayer(player);
+    }
+
+    public static void addSpecPlayer(Player player) {
+        spectatorTeam.addPlayer(player);
+    }
+
+    public static int getPlayersSize() {
+        if(players == null) return 0;
+        return players.size();
+    }
+
+    public static ArrayList<Player> getPlayers() {
+        return players;
+    }
+    public static TeamBase getDefaultTeam() {
+        return defaultTeam;
     }
     public static void removePlayerToDefaultTeam(Player player) {
         defaultTeam.removePlayer(player);

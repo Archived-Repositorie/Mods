@@ -3,7 +3,6 @@ package com.oresfall.wallwars.commands.game.player;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.playerclass.Player;
@@ -34,8 +33,7 @@ public class Random {
             return -1;
         }
 
-        Game game = Database.getGames().get((int)(Math.random() * Database.getGames().size()));
-        Main.LOGGER.info(String.valueOf((Math.random() * Database.getGames().size())));
+        Game game = Database.getGames().get(new java.util.Random().nextInt(Database.getGames().size()));
 
 
         if(!player.joinGame(game)) {

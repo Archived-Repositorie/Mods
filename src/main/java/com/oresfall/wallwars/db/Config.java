@@ -1,5 +1,7 @@
 package com.oresfall.wallwars.db;
 
+import com.oresfall.wallwars.utls.Utils;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Formatting;
 
@@ -34,6 +36,10 @@ class Config {
         public boolean pvp = false;
     }
 
+    public static class PlayerData {
+        public String ID = "";
+    }
+
     public static class GlobalTemplate {
         public String world = "";
         public double[] coords = new double[3];
@@ -44,10 +50,15 @@ class Config {
      */
     public GamesTemplate[] games;
     public GlobalTemplate global;
+    public PlayerData[] playerData;
 
-    public Config() {
+    private transient MinecraftServer server;
+
+    public Config(MinecraftServer server) {
+        this.server = server;
         gameConfig();
         globalConfig();
+        playerData();
     }
     /**
      * Saves list of games
@@ -73,6 +84,15 @@ class Config {
         global.coords[0] = Database.getLobbyCoords().x;
         global.coords[1] = Database.getLobbyCoords().y;
         global.coords[2] = Database.getLobbyCoords().z;
-        global.world = Database.getLobbyWorld().getRegistryKey().getValue().toString();
+        global.world = Database.getLobbyWorld(server).getRegistryKey().getValue().toString();
+    }
+
+    private void playerData() {
+        this.playerData = new PlayerData[Database.getPlayersSize()+1];
+        for(int i = 0; i < Database.getPlayersSize(); i++) {
+            this.playerData[i] = new PlayerData();
+            this.playerData[i].ID = Database.getPlayers().get(i).getPlayerEntity().getUuid().toString();
+        }
+        Utils.removeDuplicates(this.playerData);
     }
 }

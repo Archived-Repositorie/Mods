@@ -14,6 +14,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Scanner;
 
 /**
@@ -33,7 +35,7 @@ public class Utils {
     @Nullable
     public static ServerWorld getWorldByName(@NotNull MinecraftServer server, String worldName) {
         for(ServerWorld serverWorld : server.getWorlds()) {
-            if(serverWorld.getRegistryKey().getValue().toString().contains(worldName)) {
+            if(serverWorld.getRegistryKey().getValue().toString().equals(worldName)) {
                 return serverWorld;
             }
         }
@@ -92,6 +94,13 @@ public class Utils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <T> T[] removeDuplicates(T[] a) {
+
+        LinkedHashSet<T> set
+                = new LinkedHashSet<T>(Arrays.asList(a));
+        return set.toArray(a);
     }
 
 }

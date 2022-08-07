@@ -3,7 +3,6 @@ package com.oresfall.wallwars.gameclass;
 import com.oresfall.wallwars.playerclass.Player;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class TeamBase {
-    private ArrayList<ServerPlayerEntity> players = new ArrayList<>();
+    private ArrayList<Player> players = new ArrayList<>();
     private int max = 5;
     private String name = "default";
     private Formatting color = Formatting.WHITE;
@@ -65,7 +64,8 @@ public class TeamBase {
     }
 
     public void addPlayer(Player player) {
-        this.players.add(player.getPlayerEntity());
+        this.players.add(player);
+        if(player.getTeam() != null) player.getTeam().removePlayer(player);
         this.team.getScoreboard().addPlayerToTeam(player.getName(),this.team);
         player.setTeam(this);
     }

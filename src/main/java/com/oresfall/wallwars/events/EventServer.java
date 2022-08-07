@@ -14,8 +14,9 @@ public class EventServer {
      * @param server
      */
     private static void Started(MinecraftServer server) {
-        Database.readGames(server);
+        Database.readConfigs(server);
         Database.setDefaultTeam(server,"default");
+        Database.setSpectatorTeam(server,"spec");
         ServerTickEvents.START_SERVER_TICK.register(Database::onEveryTick);
     }
     /**
@@ -30,7 +31,7 @@ public class EventServer {
      * @param server
      */
     private static void Stopping(MinecraftServer server) {
-        Database.saveGames();
+        Database.saveGames(server);
     }
 
     /**
