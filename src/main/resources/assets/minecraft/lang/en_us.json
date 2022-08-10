@@ -1,3 +1,6 @@
 {
-  "chat.type.text": "%s • %s"
+  "chat.type.text": "%s • %s",
+  "chat.type.team.text": "%s %s %s",
+  "chat.type.team.sent": "%s %s %s",
+  "chat.type.team.hover": "Message Team"
 }

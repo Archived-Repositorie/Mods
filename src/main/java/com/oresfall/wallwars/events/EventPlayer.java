@@ -19,12 +19,13 @@ public class EventPlayer {
      * @param server
      */
     private static void Join(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer server) {
-        Player player = Database.getPlayer(serverPlayNetworkHandler.getPlayer());
+        Player player = Database.getPlayer(serverPlayNetworkHandler.getPlayer().getUuid());
         if(player == null) {
             player = new Player(serverPlayNetworkHandler.getPlayer());
             Database.addPlayer(player);
             Database.getDefaultTeam().addPlayer(player);
         } else {
+            player.loadPlayerEntity(server);
             player.leaveGame();
         }
     }
@@ -34,7 +35,7 @@ public class EventPlayer {
      * Look at {@link #register()} for more informations
      */
     private static void Disconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
-        Player player = Database.getPlayer(serverPlayNetworkHandler.getPlayer());
+        Player player = Database.getPlayer(serverPlayNetworkHandler.getPlayer().getUuid());
         player.leaveGame();
     }
 

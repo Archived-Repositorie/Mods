@@ -37,7 +37,7 @@ public class GamesInfo {
                     Arrays.deepToString(game.getPlayersByName().toArray()),
                     game.getPlayers().size(),
                     game.getWorld().getRegistryKey().getValue(),
-                    Arrays.toString(new double[]{game.getSpawnCoords().x, game.getSpawnCoords().y, game.getSpawnCoords().z})
+                    Arrays.toString(new double[]{game.getSPlace().x, game.getSPlace().y, game.getSPlace().z})
             )));
         }
         return 0;

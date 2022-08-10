@@ -25,7 +25,7 @@ public class Random {
     }
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
-        Player player = Database.getPlayer(target);
+        Player player = Database.getPlayer(target.getUuid());
         assert player != null;
 
         if(player.getInGame()) {

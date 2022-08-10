@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Class for saving stuff
@@ -98,9 +100,29 @@ public class Database {
     }
 
     public static @Nullable Player getPlayer(PlayerEntity playerEntity) {
-        if(players == null) return null;
+        if(players.size() <= 0) return null;
         for(Player player : players) {
             if(player.getPlayerEntity() == playerEntity) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public static @Nullable Player getPlayer(String name) {
+        if(players.size() <= 0) return null;
+        for(Player player : players) {
+            if(Objects.equals(player.getName(), name)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public static @Nullable Player getPlayer(UUID ID) {
+        if(players.size() <= 0) return null;
+        for(Player player : players) {
+            if(Objects.equals(player.getID(), ID)) {
                 return player;
             }
         }
@@ -119,7 +141,6 @@ public class Database {
         if(coords.equals(lobbyCoords)) return false;
         lobbyCoords = coords;
         lobbyWorld = world;
-        Main.LOGGER.info(lobbyWorld.toString());
         return true;
     }
 
@@ -178,9 +199,10 @@ public class Database {
         Utils util = new Utils();
         setLobby(server.getOverworld(), 0, 60, 0);
         Config configData = util.readJsonFile(Main.configFile, Config.class);
-        if(configData.global == null) {
+        if(Objects.equals(configData.global, new Config.GlobalTemplate())) {
             setLobby(server.getOverworld(), 0,60,0);
         } else {
+            Main.LOGGER.info(configData.global.world);
             setLobby(Utils.getWorldByName(server,configData.global.world),
                     configData.global.coords[0],
                     configData.global.coords[1],
@@ -190,11 +212,30 @@ public class Database {
         if(configData.games == null) return;
         for(Config.GamesTemplate gameData : configData.games) {
             if(getGameByName(gameData.name) != null) continue;
-            Game game = new Game(gameData.name, Utils.getWorldByName(server, gameData.world));
-            game.setSpawnCoords(gameData.spawnCoords[0], gameData.spawnCoords[1], gameData.spawnCoords[2]);
+            Game game = new Game(gameData.name, server);
+            game.setWorld(gameData.world);
+            Config.GamesTemplate.StartSpawn instance = new Config.GamesTemplate.StartSpawn();
+            game.setSpawnStart(
+                    Utils.getWorldByName(server,gameData.world),
+                    instance.place[1],
+                    instance.place[1],
+                    instance.place[2]
+            );
             Database.addGame(game);
         }
+        if(configData.playerData == null) return;
+        for(Config.PlayerData playerData : configData.playerData) {
+            if(
+                    playerData != null
+                    &&getPlayer(playerData.name) != null
+                    &&getPlayer(UUID.fromString(playerData.ID)) != null
+            ) continue;
+            if(playerData == null) continue;
+            Player player = new Player(playerData.name, UUID.fromString(playerData.ID));
+            Database.addPlayer(player);
+        }
         config = configData;
+
     }
 
     public static void tpPlayerToLobby(Player player, MinecraftServer server) {
@@ -225,7 +266,7 @@ public class Database {
         spectatorTeam = new TeamBase(server,teamName);
         spectatorTeam.setColor(Formatting.GRAY);
         spectatorTeam.enablePvp(false);
-        defaultTeam.setPrefix(Text.literal("DEAD ").formatted(Formatting.BOLD));
+        spectatorTeam.setPrefix(Text.literal("DEAD ").formatted(Formatting.BOLD));
     }
 
     public static void addPlayerToDefaultTeam(Player player) {

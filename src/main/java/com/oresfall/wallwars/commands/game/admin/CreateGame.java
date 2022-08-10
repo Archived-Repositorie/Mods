@@ -27,7 +27,8 @@ public class CreateGame {
         if(Database.ifGameExist(gameName)) {
             throw new SimpleCommandExceptionType(Text.literal("Values are already set.")).create();
         }
-        Game game = new Game(gameName,world);
+        Game game = new Game(gameName,world.getServer());
+        game.setWorld(world);
         Database.addGame(game);
         target.sendMessage(defaultMsg(String.format("Created new game %s", game)));
         return 0;

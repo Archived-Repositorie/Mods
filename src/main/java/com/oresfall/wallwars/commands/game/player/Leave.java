@@ -24,7 +24,7 @@ public class Leave {
     }
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
-        Player player = Database.getPlayer(target);
+        Player player = Database.getPlayer(target.getUuid());
 
 
         if(!player.leaveGame()) {

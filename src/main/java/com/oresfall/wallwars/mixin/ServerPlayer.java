@@ -23,7 +23,7 @@ public abstract class ServerPlayer extends PlayerEntity{
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     public void onDeath(DamageSource damageSource, CallbackInfo ci) {
-        Player player = Database.getPlayer(this);
+        Player player = Database.getPlayer(this.getUuid());
         if(player.getInGame()) {
             player.onDeath();
         }

@@ -10,7 +10,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -43,29 +42,39 @@ public class Game {
      * Max size of plot (X,Z)
      */
     private int plotXbyZ = 60 * 6;
-    /**
-     * Spawn place (the place before staring of game) X,Y,Z
-     */
-    private Vec3d spawnPlace = new Vec3d(0, 60, 0);
+
     private TeamBase[] teams = new TeamBase[4];
+
+    public class StartSpawn {
+        private static Vec3d place = new Vec3d(0,60,0);
+        private static ServerWorld world;
+        static void setWorld(ServerWorld world) {
+            StartSpawn.world = world;
+        }
+        static void setPlace(Vec3d place) {
+            StartSpawn.place = place;
+        }
+
+    }
 
     /**
      * @param name Name of game
      * @param world World of game
      */
-    public Game(String name, @NotNull ServerWorld world) {
+    public Game(String name, MinecraftServer server) {
         this.name = name;
-        this.world = world;
-        this.server = world.getServer();
+        this.server = server;
         createTeams();
     }
 
-    /**
-     * @return Value of spawnPlace
-     */
-    public Vec3d getSpawnCoords() {
-        return spawnPlace;
+    public Vec3d getSPlace() {
+        return StartSpawn.place;
     }
+
+    public ServerWorld getSWorld() {
+        return StartSpawn.world;
+    }
+
 
     /**
      * @return Value of world
@@ -104,17 +113,18 @@ public class Game {
         return true;
     }
 
-    /**
-     * Sets coordinates of spawn place (place before game)
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
-     * @return 0 if good, -1 if it's already set
-     */
-    public boolean setSpawnCoords(double x, double y, double z) {
+    public boolean setWorld(String worldName) {
+        if(Utils.getWorldByName(server,worldName) == world) return false;
+        this.world = Utils.getWorldByName(server,worldName);
+        return true;
+    }
+
+    public boolean setSpawnStart(ServerWorld world, double x, double y, double z) {
         var place = new Vec3d(x,y,z);
-        if(place.equals(spawnPlace)) return false;
-        spawnPlace = place;
+        if(place.equals(StartSpawn.place)) return false;
+        if(world.equals(StartSpawn.world)) return false;
+        StartSpawn.setWorld(world);
+        StartSpawn.setPlace(place);
         return true;
     }
 
@@ -215,6 +225,7 @@ public class Game {
             for(TeamBase team : teams) {
                 team.teleportPlayers();
             }
+            phase = 2;
         } else if(phase == 2) {
             switch (time) {
                 case 0 ->

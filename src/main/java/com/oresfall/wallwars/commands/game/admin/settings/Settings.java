@@ -9,6 +9,6 @@ public class Settings {
         return CommandManager.literal("settings")
                 .then(ChangeWorld.register())
                 .then(SetLobby.register())
-                .then(SetSpawnCoords.register());
+                .then(SetSpawnStart.register());
     }
 }

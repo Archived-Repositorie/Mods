@@ -22,11 +22,11 @@ class Config {
          * For "world" key in json
          */
         public String world = "";
-        /**
-         * For "spawnCoords" key in json
-         * 3 items big array
-         */
-        public double[] spawnCoords = new double[3];
+
+        static class StartSpawn {
+            public double[] place = new double[3];
+            public String world = "";
+        }
     }
 
     public static class DefaultTeamTemplate {
@@ -38,11 +38,12 @@ class Config {
 
     public static class PlayerData {
         public String ID = "";
+        public String name = "";
     }
 
     public static class GlobalTemplate {
-        public String world = "";
-        public double[] coords = new double[3];
+        public static String world = "";
+        public static double[] coords = new double[3];
     }
 
     /**
@@ -71,28 +72,29 @@ class Config {
             games[i].name = gamesList.get(i).toString();
             ServerWorld world = gamesList.get(i).getWorld();
             games[i].world = world.getRegistryKey().getValue().toString();
-            games[i].spawnCoords = new double[]{
-                    gamesList.get(i).getSpawnCoords().x,
-                    gamesList.get(i).getSpawnCoords().y,
-                    gamesList.get(i).getSpawnCoords().z,
+            GamesTemplate.StartSpawn instance = new GamesTemplate.StartSpawn();
+            instance.place = new double[]{
+                    gamesList.get(i).getSPlace().x,
+                    gamesList.get(i).getSPlace().y,
+                    gamesList.get(i).getSPlace().z,
             };
         }
     }
 
     private void globalConfig() {
-        this.global = new GlobalTemplate();
-        global.coords[0] = Database.getLobbyCoords().x;
-        global.coords[1] = Database.getLobbyCoords().y;
-        global.coords[2] = Database.getLobbyCoords().z;
-        global.world = Database.getLobbyWorld(server).getRegistryKey().getValue().toString();
+        GlobalTemplate.coords[0] = Database.getLobbyCoords().x;
+        GlobalTemplate.coords[1] = Database.getLobbyCoords().y;
+        GlobalTemplate.coords[2] = Database.getLobbyCoords().z;
+        GlobalTemplate.world = Database.getLobbyWorld(server).getRegistryKey().getValue().toString();
     }
 
     private void playerData() {
         this.playerData = new PlayerData[Database.getPlayersSize()+1];
         for(int i = 0; i < Database.getPlayersSize(); i++) {
             this.playerData[i] = new PlayerData();
-            this.playerData[i].ID = Database.getPlayers().get(i).getPlayerEntity().getUuid().toString();
+            this.playerData[i].ID = Database.getPlayers().get(i).getID().toString();
+            this.playerData[i].name = Database.getPlayers().get(i).getName();
         }
-        Utils.removeDuplicates(this.playerData);
+        playerData = Utils.removeDuplicates(this.playerData);
     }
 }
