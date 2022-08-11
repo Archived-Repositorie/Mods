@@ -3,15 +3,14 @@ package com.oresfall.wallwars.gameclass;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Class to create instances of games
@@ -20,7 +19,7 @@ public class Game {
     /**
      * Name of game
      */
-    private String name;
+    private final String name;
     /**
      * World of game
      */
@@ -28,11 +27,7 @@ public class Game {
     /**
      * Server of game
      */
-    private MinecraftServer server;
-    /**
-     * List of players that joined game
-     */
-    private ArrayList<Player> players = new ArrayList<>();
+    private final MinecraftServer server;
     /**
      * Max number of players that can join game
      */
@@ -44,8 +39,9 @@ public class Game {
     private int plotXbyZ = 60 * 6;
 
     private TeamBase[] teams = new TeamBase[4];
+    private final GroupBase playerGroup;
 
-    public class StartSpawn {
+    public static class StartSpawn {
         private static Vec3d place = new Vec3d(0,60,0);
         private static ServerWorld world;
         static void setWorld(ServerWorld world) {
@@ -57,14 +53,11 @@ public class Game {
 
     }
 
-    /**
-     * @param name Name of game
-     * @param world World of game
-     */
     public Game(String name, MinecraftServer server) {
         this.name = name;
         this.server = server;
         createTeams();
+        this.playerGroup = new GroupBase(this);
     }
 
     public Vec3d getSPlace() {
@@ -87,7 +80,7 @@ public class Game {
      * @return Value of players
      */
     public ArrayList<Player> getPlayers() {
-        return players;
+        return this.playerGroup.getPlayers();
     }
 
     /**
@@ -95,7 +88,7 @@ public class Game {
      */
     public ArrayList<String> getPlayersByName() {
         ArrayList<String> playersByName = new ArrayList<String>();
-        for(Player player : players) {
+        for(Player player : this.playerGroup.getPlayers()) {
             if(player == null) continue;
             playersByName.add(player.getName());
         }
@@ -114,7 +107,7 @@ public class Game {
     }
 
     public boolean setWorld(String worldName) {
-        if(Utils.getWorldByName(server,worldName) == world) return false;
+        if(Objects.equals(worldName, world.getRegistryKey().getValue().toString())) return false;
         this.world = Utils.getWorldByName(server,worldName);
         return true;
     }
@@ -134,13 +127,8 @@ public class Game {
      * @return 0 if good, -1 if there is too many players
      */
     public boolean joinPlayer(Player player) {
-        if(players.size() == maxPlayers) return false;
-        players.add(player);
-        return true;
-    }
-    public boolean joinPlayer(ServerPlayerEntity target) {
-        if(players.size() == maxPlayers) return false;
-        players.add(Database.getPlayer(target));
+        if(this.playerGroup.getPlayers().size() == maxPlayers) return false;
+        this.playerGroup.addPlayer(player);
         return true;
     }
 
@@ -150,8 +138,8 @@ public class Game {
      * @return 0 if good, -1 if player doesn't exist
      */
     public boolean leavePlayer(Player player) {
-        if(!players.contains(player)) return false;
-        players.remove(player);
+        if(!this.playerGroup.getPlayers().contains(player)) return false;
+        playerGroup.removePlayer(player);
         Database.tpPlayerToLobby(player, player.getPlayerEntity().getServer());
         Database.addPlayerToDefaultTeam(player);
         return true;
@@ -164,7 +152,7 @@ public class Game {
     public boolean removeGame() {
         if(!Database.ifGameExist(this)) return false;
         Database.removeGame(this);
-        players.forEach(this::leavePlayer);
+        playerGroup.removePlayers();
         return true;
     }
 
@@ -173,48 +161,54 @@ public class Game {
     //minutes - seconds - ticks
     private final int startTime = 5 * Utils.MIN;
     private int phase = -1;
+    private boolean win = false;
+    
+    private void sendToGroup(Text message) {
+        playerGroup.sendMessage(message);
+    }
     public void onTick(MinecraftServer server) {
-        if(phase == -1) {
-            if(players == null) return;
-            if(players.size() < minPlayers) {
-                time = 0;
-                return;
-            }
+        if(win) {
+            phase = Integer.MIN_VALUE;
+        }
+        if(this.playerGroup.getPlayers().size() < minPlayers) {
+            time = 0;
+            return;
+        }else if(phase == -1) {
             switch (time) {
                 case 0 ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("5 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("5 minutes"));
                 case Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("4 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("4 minutes"));
                 case 2 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("3 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("3 minutes"));
                 case 3 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("2 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("2 minutes"));
                 case 4 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("1 minute"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("1 minute"));
                 case 4 * Utils.MIN + 30 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("30"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("30"));
                 case 4 * Utils.MIN + 45 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("15"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("15"));
                 case 4 * Utils.MIN + 50 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("10"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("10"));
                 case 4 * Utils.MIN + 55 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("5"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("5"));
                 case 4 * Utils.MIN + 56 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("4"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("4"));
                 case 4 * Utils.MIN + 57 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("3"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("3"));
                 case 4 * Utils.MIN + 58 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("2"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("2"));
                 case 4 * Utils.MIN + 59 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("1"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("1"));
                 case startTime -> {
-                    server.getPlayerManager().broadcast(Utils.defaultMsg("Start!"), MessageType.SYSTEM);
+                    sendToGroup(Utils.defaultMsg("Start!"));
                     phase = 0;
                 }
             }
         } else if (phase == 0) {
             int i = 1;
-            for(Player player : players) {
+            for(Player player : playerGroup.getPlayers()) {
                 Database.removePlayerToDefaultTeam(player);
                 if(i % 5 == 0) i = 1;
                 teams[i-1].addPlayer(player);
@@ -222,6 +216,7 @@ public class Game {
             }
             phase = 1;
         } else if(phase == 1) {
+            sendToGroup(Utils.defaultMsg("Teleporting to teams"));
             for(TeamBase team : teams) {
                 team.teleportPlayers();
             }
@@ -229,33 +224,33 @@ public class Game {
         } else if(phase == 2) {
             switch (time) {
                 case 0 ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("Walls will go down in 5 minutes!"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("Walls will go down in 5 minutes!"));
                 case Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("4 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("4 minutes"));
                 case 2 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("3 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("3 minutes"));
                 case 3 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("2 minutes"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("2 minutes"));
                 case 4 * Utils.MIN ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("1 minute"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("1 minute"));
                 case 4 * Utils.MIN + 30 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("30"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("30"));
                 case 4 * Utils.MIN + 45 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("15"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("15"));
                 case 4 * Utils.MIN + 50 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("10"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("10"));
                 case 4 * Utils.MIN + 55 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("5"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("5"));
                 case 4 * Utils.MIN + 56 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("4"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("4"));
                 case 4 * Utils.MIN + 57 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("3"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("3"));
                 case 4 * Utils.MIN + 58 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("2"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("2"));
                 case 4 * Utils.MIN + 59 * Utils.SEC ->
-                        server.getPlayerManager().broadcast(Utils.defaultMsg("1"), MessageType.SYSTEM);
+                        sendToGroup(Utils.defaultMsg("1"));
                 case startTime -> {
-                    server.getPlayerManager().broadcast(Utils.defaultMsg("Walls go down!"), MessageType.SYSTEM);
+                    sendToGroup(Utils.defaultMsg("Walls go down!"));
 
                     phase = 3;
                 }

@@ -1,6 +1,9 @@
 package com.oresfall.wallwars.gameclass;
 
 import com.oresfall.wallwars.playerclass.Player;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SentMessage;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
@@ -78,5 +81,18 @@ public class TeamBase {
 
     public void teleportPlayers() {
         //TODO: Teleport players to place
+    }
+
+    public void sendMessage(Text message) {
+        players.forEach(player -> {
+            player.getPlayerEntity().sendMessage(message);
+        });
+    }
+
+    public void sendMessage(SignedMessage message, MessageType.Parameters params) {
+        SentMessage sentMessage = SentMessage.of(message);
+        players.forEach(player -> {
+            player.getPlayerEntity().sendChatMessage(sentMessage, false, params);
+        });
     }
 }
