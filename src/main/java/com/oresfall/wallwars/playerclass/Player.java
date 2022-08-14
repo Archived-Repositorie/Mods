@@ -16,6 +16,10 @@ public class Player {
     private boolean inGame = false;
     private String name;
     private UUID ID;
+
+    private boolean dead = false;
+
+    private int phase = -2;
     public Player(ServerPlayerEntity player) {
         playerEntity = player;
         name = player.getEntityName();
@@ -27,8 +31,24 @@ public class Player {
         this.name = name;
     }
 
+    public void setPhase(int phase) {
+        this.phase = phase;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public int getPhase() {
+        return phase;
+    }
+
     public void loadPlayerEntity(MinecraftServer server) {
         this.playerEntity = server.getPlayerManager().getPlayer(ID);
+    }
+
+    public void setDead(boolean isDeath) {
+        dead = isDeath;
     }
 
     public boolean joinGame(Game game) {

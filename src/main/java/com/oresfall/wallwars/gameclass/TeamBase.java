@@ -8,13 +8,14 @@ import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 public class TeamBase {
-    private ArrayList<Player> players = new ArrayList<>();
+    private final ArrayList<Player> players = new ArrayList<>();
     private int max = 5;
     private String name = "default";
     private Formatting color = Formatting.WHITE;
@@ -38,6 +39,7 @@ public class TeamBase {
             Formatting.LIGHT_PURPLE,
             Formatting.YELLOW,
     };
+    private Game game;
 
     public TeamBase(MinecraftServer server, String name) {
         this.team = new Team(server.getScoreboard(), name);
@@ -80,7 +82,10 @@ public class TeamBase {
     }
 
     public void teleportPlayers() {
-        //TODO: Teleport players to place
+        for(Player player : players) {
+            if(player == null) continue;
+            player.getPlayerEntity().teleport(game.getWorld(), spawnCoords.x, spawnCoords.y,spawnCoords.z, player.getPlayerEntity().getYaw(), player.getPlayerEntity().getPitch());
+        }
     }
 
     public void sendMessage(Text message) {
@@ -94,5 +99,22 @@ public class TeamBase {
         players.forEach(player -> {
             player.getPlayerEntity().sendChatMessage(sentMessage, false, params);
         });
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public void setSpawnPlace(BlockPos blockPos) {
+        spawnCoords = new Vec3d(blockPos.getX(),blockPos.getY(),blockPos.getZ());
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 }

@@ -3,11 +3,14 @@ package com.oresfall.wallwars.gameclass;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -38,8 +41,23 @@ public class Game {
      */
     private int plotXbyZ = 60 * 6;
 
-    private TeamBase[] teams = new TeamBase[4];
+    private final ArrayList<TeamBase> teams = new ArrayList<>();
     private final GroupBase playerGroup;
+
+    private boolean gameStarted = false;
+
+    public boolean getGameStarted() {
+        return gameStarted;
+    }
+
+    public @Nullable TeamBase getTeam(String teamString) {
+        for(TeamBase team : teams) {
+            if(Objects.equals(team.toString(), teamString)) {
+                return team;
+            }
+        }
+        return null;
+    }
 
     public static class StartSpawn {
         private static Vec3d place = new Vec3d(0,60,0);
@@ -107,7 +125,7 @@ public class Game {
     }
 
     public boolean setWorld(String worldName) {
-        if(Objects.equals(worldName, world.getRegistryKey().getValue().toString())) return false;
+        if(world != null && Objects.equals(worldName, world.getRegistryKey().getValue().toString())) return false;
         this.world = Utils.getWorldByName(server,worldName);
         return true;
     }
@@ -127,7 +145,7 @@ public class Game {
      * @return 0 if good, -1 if there is too many players
      */
     public boolean joinPlayer(Player player) {
-        if(this.playerGroup.getPlayers().size() == maxPlayers) return false;
+        if(this.playerGroup.getPlayers().size() == maxPlayers || getGameStarted()) return false;
         this.playerGroup.addPlayer(player);
         return true;
     }
@@ -163,18 +181,90 @@ public class Game {
     private int phase = -1;
     private boolean win = false;
     
-    private void sendToGroup(Text message) {
+    public void sendToGroup(Text message) {
         playerGroup.sendMessage(message);
     }
+
+    public void sendToGroup(SignedMessage message, MessageType.Parameters params) {
+        playerGroup.sendMessage(message,params);
+    }
+    private final Stages s = new Stages();
     public void onTick(MinecraftServer server) {
-        if(win) {
-            phase = Integer.MIN_VALUE;
+        if(phase >= 2) {
+            s.win();
         }
-        if(this.playerGroup.getPlayers().size() < minPlayers) {
-            time = 0;
-            return;
-        }else if(phase == -1) {
+        switch(phase) {
+            case -2 -> s.waitingForPlayers();
+            case -1 -> s.startingGame();
+            case 0 -> s.selectingTeams();
+            case 1 -> s.teleporting();
+            case 2 -> s.wallsDown();
+            case 3 -> s.glow();
+        }
+        time++;
+
+    }
+    private void createTeams() {
+        TeamBase limeTeam = new TeamBase(server,"lime_".concat(name));
+        TeamBase pinkTeam = new TeamBase(server,"pink_".concat(name));
+        TeamBase cyanTeam = new TeamBase(server,"cyan_".concat(name));
+        TeamBase grayTeam = new TeamBase(server,"gray_".concat(name));
+        limeTeam.setPrefix(Text.literal("LIME ").formatted(Formatting.BOLD));
+        pinkTeam.setPrefix(Text.literal("PINK ").formatted(Formatting.BOLD));
+        cyanTeam.setPrefix(Text.literal("CYAN ").formatted(Formatting.BOLD));
+        grayTeam.setPrefix(Text.literal("GRAY ").formatted(Formatting.BOLD));
+        limeTeam.setColor(Formatting.GREEN);
+        pinkTeam.setColor(Formatting.LIGHT_PURPLE);
+        cyanTeam.setColor(Formatting.AQUA);
+        grayTeam.setColor(Formatting.GRAY);
+        limeTeam.enablePvp(false);
+        pinkTeam.enablePvp(false);
+        cyanTeam.enablePvp(false);
+        grayTeam.enablePvp(false);
+        limeTeam.setGame(this);
+        pinkTeam.setGame(this);
+        cyanTeam.setGame(this);
+        grayTeam.setGame(this);
+        teams.add(limeTeam);
+        teams.add(pinkTeam);
+        teams.add(cyanTeam);
+        teams.add(grayTeam);
+    }
+
+    private class Stages {
+        public void win() {
+            int teamsWithNoPlayers = 0;
+            ArrayList<TeamBase> teamsAlive = teams;
+            for (TeamBase team : teams) {
+                if (team.getPlayers().size() <= 0) {
+                    teamsWithNoPlayers++;
+                    teamsAlive.remove(team);
+                }
+            }
+            if (teamsWithNoPlayers >= teams.size() - 1) {
+                phase = Integer.MIN_VALUE;
+                teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
+                sendToGroup(Text.literal("Team " + teamsAlive.get(0).toString() + "won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+            }
+        }
+
+        public void waitingForPlayers() {
+            if(playerGroup.getPlayers().size() < minPlayers) {
+                time = 0;
+                phase = -2;
+            } else {
+                phase = -1;
+            }
+        }
+
+        public void startingGame() {
+            waitingForPlayers();
+            if(getPlayers().size() >= 1 && time < 4 * Utils.MIN + 50 * Utils.SEC) {
+                time = 4 * Utils.MIN + 50 * Utils.SEC;
+                sendToGroup(Utils.defaultMsg("Game is full! Starting faster"));
+            }
             switch (time) {
+
                 case 0 ->
                         sendToGroup(Utils.defaultMsg("5 minutes"));
                 case Utils.MIN ->
@@ -202,26 +292,37 @@ public class Game {
                 case 4 * Utils.MIN + 59 * Utils.SEC ->
                         sendToGroup(Utils.defaultMsg("1"));
                 case startTime -> {
+                    playerGroup.setPhaseToPlayers(phase++);
                     sendToGroup(Utils.defaultMsg("Start!"));
                     phase = 0;
                 }
             }
-        } else if (phase == 0) {
+        }
+
+        public void selectingTeams() {
             int i = 1;
             for(Player player : playerGroup.getPlayers()) {
                 Database.removePlayerToDefaultTeam(player);
                 if(i % 5 == 0) i = 1;
-                teams[i-1].addPlayer(player);
+                teams.get(i-1).addPlayer(player);
                 i++;
             }
+            gameStarted = true;
+            playerGroup.setPhaseToPlayers(phase++);
             phase = 1;
-        } else if(phase == 1) {
+        }
+
+        public void teleporting() {
             sendToGroup(Utils.defaultMsg("Teleporting to teams"));
             for(TeamBase team : teams) {
                 team.teleportPlayers();
             }
+            time = 0;
+            playerGroup.setPhaseToPlayers(phase++);
             phase = 2;
-        } else if(phase == 2) {
+        }
+
+        public void wallsDown() {
             switch (time) {
                 case 0 ->
                         sendToGroup(Utils.defaultMsg("Walls will go down in 5 minutes!"));
@@ -251,34 +352,25 @@ public class Game {
                         sendToGroup(Utils.defaultMsg("1"));
                 case startTime -> {
                     sendToGroup(Utils.defaultMsg("Walls go down!"));
-
+                    playerGroup.setPhaseToPlayers(phase++);
                     phase = 3;
+                    time = 0;
                 }
             }
         }
-        time++;
-    }
-    private void createTeams() {
-        TeamBase limeTeam = new TeamBase(server,"lime_".concat(name));
-        TeamBase pinkTeam = new TeamBase(server,"pink_".concat(name));
-        TeamBase cyanTeam = new TeamBase(server,"cyan_".concat(name));
-        TeamBase grayTeam = new TeamBase(server,"gray_".concat(name));
-        limeTeam.setPrefix(Text.literal("LIME ").formatted(Formatting.BOLD));
-        pinkTeam.setPrefix(Text.literal("PINK ").formatted(Formatting.BOLD));
-        cyanTeam.setPrefix(Text.literal("CYAN ").formatted(Formatting.BOLD));
-        grayTeam.setPrefix(Text.literal("GRAY ").formatted(Formatting.BOLD));
-        limeTeam.setColor(Formatting.GREEN);
-        pinkTeam.setColor(Formatting.LIGHT_PURPLE);
-        cyanTeam.setColor(Formatting.AQUA);
-        grayTeam.setColor(Formatting.GRAY);
-        limeTeam.enablePvp(false);
-        pinkTeam.enablePvp(false);
-        cyanTeam.enablePvp(false);
-        grayTeam.enablePvp(false);
-        teams[0] = limeTeam;
-        teams[1] = pinkTeam;
-        teams[2] = cyanTeam;
-        teams[3] = grayTeam;
+
+        public void glow() {
+            if(time == 5*Utils.MIN) {
+                sendToGroup(Utils.defaultMsg("Everyone got glowing effect!"));
+                for(Player player : getPlayers()) {
+                    player.getPlayerEntity().setGlowing(true);
+                }
+                playerGroup.setPhaseToPlayers(phase++);
+                phase = 4;
+                time = 0;
+            }
+        }
+
     }
 
     public void wallsDown() {

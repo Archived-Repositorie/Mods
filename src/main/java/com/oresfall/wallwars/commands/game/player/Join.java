@@ -33,9 +33,13 @@ public class Join {
         Player player = Database.getPlayer(target);
 
 
-        assert player != null;
         if(player.getInGame()) {
             target.sendMessage(errorMsg("You are already in game!"));
+            return -1;
+        }
+
+        if(!player.joinGame(game)) {
+            target.sendMessage(errorMsg( "You can't join this game"));
             return -1;
         }
 
