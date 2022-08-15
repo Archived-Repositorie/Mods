@@ -18,10 +18,12 @@ public class GroupBase {
 
     public void removePlayers() {
         players.clear();
+        if(game != null)game.getPlayers().forEach(game::leavePlayer);
     }
 
     public void removePlayer(Player player) {
         players.remove(player);
+        player.setGame(null);
     }
 
     public void addPlayer(Player player) {
@@ -37,13 +39,13 @@ public class GroupBase {
     }
 
     public void sendMessage(Text message) {
-        players.forEach(player -> player.getPlayerEntity().sendMessage(message));
+        players.forEach(player -> player.getPlayerEntity(game.getServer()).sendMessage(message));
     }
 
     public void sendMessage(SignedMessage message, MessageType.Parameters params) {
         SentMessage sentMessage = SentMessage.of(message);
 
-        players.forEach(player -> player.getPlayerEntity().sendChatMessage(sentMessage, false, params));
+        players.forEach(player -> player.getPlayerEntity(game.getServer()).sendChatMessage(sentMessage, false, params));
     }
 
     public void setPhaseToPlayers(int phase) {

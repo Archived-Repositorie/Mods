@@ -102,7 +102,7 @@ public class Database {
     public static @Nullable Player getPlayer(PlayerEntity playerEntity) {
         if(players.size() <= 0) return null;
         for(Player player : players) {
-            if(player.getPlayerEntity() == playerEntity) {
+            if(player.getPlayerEntity(playerEntity.getServer()) == playerEntity) {
                 return player;
             }
         }
@@ -241,9 +241,9 @@ public class Database {
     public static void tpPlayerToLobby(Player player, MinecraftServer server) {
         if(lobbyWorld == null) lobbyWorld = server.getOverworld();
         FabricDimensions.teleport(
-                player.getPlayerEntity(),
+                player.getPlayerEntity(server),
                 lobbyWorld,
-                new TeleportTarget(lobbyCoords, player.getPlayerEntity().getVelocity(), player.getPlayerEntity().getYaw(), player.getPlayerEntity().prevPitch)
+                new TeleportTarget(lobbyCoords, player.getPlayerEntity(server).getVelocity(), player.getPlayerEntity(server).getYaw(), player.getPlayerEntity(server).prevPitch)
         );
     }
 

@@ -1,5 +1,6 @@
 package com.oresfall.wallwars.gameclass;
 
+import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
@@ -57,6 +58,10 @@ public class Game {
             }
         }
         return null;
+    }
+
+    public MinecraftServer getServer() {
+        return server;
     }
 
     public static class StartSpawn {
@@ -145,6 +150,7 @@ public class Game {
      * @return 0 if good, -1 if there is too many players
      */
     public boolean joinPlayer(Player player) {
+        Main.LOGGER.info(String.valueOf(getGameStarted()));
         if(this.playerGroup.getPlayers().size() == maxPlayers || getGameStarted()) return false;
         this.playerGroup.addPlayer(player);
         return true;
@@ -158,7 +164,7 @@ public class Game {
     public boolean leavePlayer(Player player) {
         if(!this.playerGroup.getPlayers().contains(player)) return false;
         playerGroup.removePlayer(player);
-        Database.tpPlayerToLobby(player, player.getPlayerEntity().getServer());
+        Database.tpPlayerToLobby(player, server);
         Database.addPlayerToDefaultTeam(player);
         return true;
     }
@@ -233,18 +239,20 @@ public class Game {
 
     private class Stages {
         public void win() {
-            int teamsWithNoPlayers = 0;
-            ArrayList<TeamBase> teamsAlive = teams;
-            for (TeamBase team : teams) {
+            ArrayList<TeamBase> teamsAlive = new ArrayList<>(teams
+            );
+            teams.forEach(team -> {
                 if (team.getPlayers().size() <= 0) {
-                    teamsWithNoPlayers++;
                     teamsAlive.remove(team);
                 }
-            }
-            if (teamsWithNoPlayers >= teams.size() - 1) {
+            });
+            if (teamsAlive.size() <= 1) {
                 phase = Integer.MIN_VALUE;
+                TeamBase team = teamsAlive.get(0);
                 teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
                 sendToGroup(Text.literal("Team " + teamsAlive.get(0).toString() + "won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+                playerGroup.removePlayers();
+                teams.forEach(t->t.getPlayers().forEach(t::removePlayer));
             }
         }
 
@@ -363,7 +371,7 @@ public class Game {
             if(time == 5*Utils.MIN) {
                 sendToGroup(Utils.defaultMsg("Everyone got glowing effect!"));
                 for(Player player : getPlayers()) {
-                    player.getPlayerEntity().setGlowing(true);
+                    player.getPlayerEntity(server).setGlowing(true);
                 }
                 playerGroup.setPhaseToPlayers(phase++);
                 phase = 4;

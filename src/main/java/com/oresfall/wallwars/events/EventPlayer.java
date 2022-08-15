@@ -25,9 +25,11 @@ public class EventPlayer {
             Database.addPlayer(player);
             Database.getDefaultTeam().addPlayer(player);
         } else {
-            player.loadPlayerEntity(server);
+            player.setPlayerEntity(serverPlayNetworkHandler.getPlayer());
+            Database.getDefaultTeam().addPlayer(player);
             player.leaveGame();
         }
+
     }
 
     /**

@@ -21,6 +21,8 @@ public class TeamBase {
     private Formatting color = Formatting.WHITE;
     private Vec3d spawnCoords = new Vec3d(0,60,0);
     private Team team;
+
+    private MinecraftServer server;
     private Formatting[] colors = new Formatting[] {
             Formatting.WHITE,
             Formatting.RED,
@@ -43,6 +45,7 @@ public class TeamBase {
 
     public TeamBase(MinecraftServer server, String name) {
         this.team = new Team(server.getScoreboard(), name);
+        this.server = server;
         this.name = name;
     }
 
@@ -84,20 +87,20 @@ public class TeamBase {
     public void teleportPlayers() {
         for(Player player : players) {
             if(player == null) continue;
-            player.getPlayerEntity().teleport(game.getWorld(), spawnCoords.x, spawnCoords.y,spawnCoords.z, player.getPlayerEntity().getYaw(), player.getPlayerEntity().getPitch());
+            player.getPlayerEntity(server).teleport(game.getWorld(), spawnCoords.x, spawnCoords.y,spawnCoords.z, player.getPlayerEntity(server).getYaw(), player.getPlayerEntity(server).getPitch());
         }
     }
 
     public void sendMessage(Text message) {
         players.forEach(player -> {
-            player.getPlayerEntity().sendMessage(message);
+            player.getPlayerEntity(server).sendMessage(message);
         });
     }
 
     public void sendMessage(SignedMessage message, MessageType.Parameters params) {
         SentMessage sentMessage = SentMessage.of(message);
         players.forEach(player -> {
-            player.getPlayerEntity().sendChatMessage(sentMessage, false, params);
+            player.getPlayerEntity(server).sendChatMessage(sentMessage, false, params);
         });
     }
 
