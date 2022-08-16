@@ -2,6 +2,11 @@ package com.oresfall.wallwars.utls;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.oresfall.wallwars.Main;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -9,10 +14,7 @@ import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -102,6 +104,19 @@ public class Utils {
                 = new LinkedHashSet<T>(Arrays.asList(a));
         return set.toArray(a);
 
+    }
+
+    public static Clipboard readSchem(String fileName) {
+        String filePath = Main.schematics+fileName+".schem";
+        File file = new File(filePath);
+        Clipboard clipboard;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            clipboard = reader.read();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return clipboard;
     }
 
 }

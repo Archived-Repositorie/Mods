@@ -79,7 +79,8 @@ public class TeamBase {
     }
 
     public void removePlayer(Player player) {
-        this.players.remove(player);
+        players.remove(player);
+        player.getTeam().removePlayer(player);
         player.setTeam(null);
         this.team.getScoreboard().removePlayerFromTeam(player.getName(), this.team);
     }

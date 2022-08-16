@@ -28,6 +28,8 @@ public class Main implements ModInitializer {
 	 */
 	public static final String configFile = format("%s/%s/data.json", FabricLoader.getInstance().getConfigDir(), modid);
 
+	public static final String schematics = format("%s/%s/schem/", FabricLoader.getInstance().getConfigDir(), modid);
+
 	/**
 	 * Event when mod gets initialized
 	 */

@@ -4,6 +4,15 @@ import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.World;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
@@ -42,10 +51,12 @@ public class Game {
      */
     private int plotXbyZ = 60 * 6;
 
-    private final ArrayList<TeamBase> teams = new ArrayList<>();
+    private ArrayList<TeamBase> teams = new ArrayList<>();
     private final GroupBase playerGroup;
 
     private boolean gameStarted = false;
+
+    private Clipboard map;
 
     public boolean getGameStarted() {
         return gameStarted;
@@ -58,6 +69,25 @@ public class Game {
             }
         }
         return null;
+    }
+
+    public void setMap(String fileName) {
+        map = Utils.readSchem(fileName);
+    }
+
+    public boolean generateMap() {
+        if(getSWorld() == null) return false;
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession((World) world)) {
+            Operation operation = new ClipboardHolder(map)
+                    .createPaste(editSession)
+                    .to(BlockVector3.at(getSPlace().x,getSPlace().y,getSPlace().z))
+                    .copyEntities(true)
+                    .build();
+            Operations.complete(operation);
+        } catch (WorldEditException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
     }
 
     public MinecraftServer getServer() {
@@ -88,6 +118,7 @@ public class Game {
     }
 
     public ServerWorld getSWorld() {
+        if(StartSpawn.world == null) StartSpawn.world = server.getOverworld();
         return StartSpawn.world;
     }
 
@@ -200,6 +231,7 @@ public class Game {
             s.win();
         }
         switch(phase) {
+            case -3 -> s.generateMap();
             case -2 -> s.waitingForPlayers();
             case -1 -> s.startingGame();
             case 0 -> s.selectingTeams();
@@ -250,10 +282,12 @@ public class Game {
                 phase = Integer.MIN_VALUE;
                 TeamBase team = teamsAlive.get(0);
                 teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
-                sendToGroup(Text.literal("Team " + teamsAlive.get(0).toString() + "won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+                sendToGroup(Text.literal("Team " + team.toString() + " won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
                 playerGroup.removePlayers();
-                teams.forEach(t->t.getPlayers().forEach(t::removePlayer));
+                new ArrayList<>(teams).forEach(t->t.getPlayers().forEach(t::removePlayer));
             }
+            gameStarted = false;
+            phase = -3;
         }
 
         public void waitingForPlayers() {
@@ -379,6 +413,10 @@ public class Game {
             }
         }
 
+        public void generateMap() {
+            Game.this.generateMap();
+            phase = -2;
+        }
     }
 
     public void wallsDown() {
