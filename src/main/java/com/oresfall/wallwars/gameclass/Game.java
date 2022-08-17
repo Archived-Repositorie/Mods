@@ -8,11 +8,11 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.fabric.FabricAdapter;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.World;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
@@ -74,10 +74,15 @@ public class Game {
     public void setMap(String fileName) {
         map = Utils.readSchem(fileName);
     }
+    public boolean setMap(Clipboard clipboard) {
+        if(map == clipboard) return false;
+        map = clipboard;
+        return true;
+    }
 
     public boolean generateMap() {
         if(getSWorld() == null) return false;
-        try (EditSession editSession = WorldEdit.getInstance().newEditSession((World) world)) {
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(FabricAdapter.adapt(world))) {
             Operation operation = new ClipboardHolder(map)
                     .createPaste(editSession)
                     .to(BlockVector3.at(getSPlace().x,getSPlace().y,getSPlace().z))
@@ -284,7 +289,6 @@ public class Game {
                 teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
                 sendToGroup(Text.literal("Team " + team.toString() + " won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
                 playerGroup.removePlayers();
-                new ArrayList<>(teams).forEach(t->t.getPlayers().forEach(t::removePlayer));
             }
             gameStarted = false;
             phase = -3;

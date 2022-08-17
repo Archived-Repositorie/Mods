@@ -10,6 +10,7 @@ public class Settings {
                 .then(ChangeWorld.register())
                 .then(SetLobby.register())
                 .then(SetSpawnStart.register())
-                .then(SetTeams.register());
+                .then(SetTeams.register())
+                .then(SetMap.register());
     }
 }

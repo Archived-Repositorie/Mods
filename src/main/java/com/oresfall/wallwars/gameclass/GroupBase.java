@@ -17,8 +17,9 @@ public class GroupBase {
     }
 
     public void removePlayers() {
-        players.clear();
-        if(game != null)game.getPlayers().forEach(game::leavePlayer);
+        if(game != null)for(int i = 0; i < game.getPlayers().size(); i++) {
+            game.leavePlayer(game.getPlayers().get(i));
+        }
     }
 
     public void removePlayer(Player player) {

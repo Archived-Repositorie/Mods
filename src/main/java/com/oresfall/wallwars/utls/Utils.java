@@ -106,11 +106,12 @@ public class Utils {
 
     }
 
-    public static Clipboard readSchem(String fileName) {
+    public static @org.jetbrains.annotations.Nullable Clipboard readSchem(String fileName) {
         String filePath = Main.schematics+fileName+".schem";
         File file = new File(filePath);
         Clipboard clipboard;
         ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if(format == null) return null;
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
             clipboard = reader.read();
         } catch (IOException e) {
