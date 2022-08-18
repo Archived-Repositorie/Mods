@@ -57,6 +57,7 @@ public class Game {
     private boolean gameStarted = false;
 
     private Clipboard map;
+    private String file;
 
     public boolean getGameStarted() {
         return gameStarted;
@@ -71,14 +72,14 @@ public class Game {
         return null;
     }
 
-    public void setMap(String fileName) {
-        map = Utils.readSchem(fileName);
-    }
-    public boolean setMap(Clipboard clipboard) {
+    public boolean setMap(Clipboard clipboard, String file) {
         if(map == clipboard) return false;
+        this.file = file;
         map = clipboard;
         return true;
     }
+    
+    
 
     public boolean generateMap() {
         if(getSWorld() == null) return false;
@@ -97,6 +98,10 @@ public class Game {
 
     public MinecraftServer getServer() {
         return server;
+    }
+
+    public String getMapFile() {
+        return file;
     }
 
     public static class StartSpawn {

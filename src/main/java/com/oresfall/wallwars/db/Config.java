@@ -27,6 +27,7 @@ class Config {
             public double[] place = new double[3];
             public String world = "";
         }
+        public String map = "";
     }
 
     public static class DefaultTeamTemplate {
@@ -42,8 +43,8 @@ class Config {
     }
 
     public static class GlobalTemplate {
-        public static String world = "";
-        public static double[] coords = new double[3];
+        public String world = "";
+        public double[] coords = new double[3];
     }
 
     /**
@@ -78,14 +79,16 @@ class Config {
                     gamesList.get(i).getSPlace().y,
                     gamesList.get(i).getSPlace().z,
             };
+            games[i].map = gamesList.get(i).getMapFile();
         }
     }
 
     private void globalConfig() {
-        GlobalTemplate.coords[0] = Database.getLobbyCoords().x;
-        GlobalTemplate.coords[1] = Database.getLobbyCoords().y;
-        GlobalTemplate.coords[2] = Database.getLobbyCoords().z;
-        GlobalTemplate.world = Database.getLobbyWorld(server).getRegistryKey().getValue().toString();
+        this.global = new GlobalTemplate();
+        this.global.coords[0] = Database.getLobbyCoords().x;
+        this.global.coords[1] = Database.getLobbyCoords().y;
+        this.global.coords[2] = Database.getLobbyCoords().z;
+        this.global.world = Database.getLobbyWorld(server).getRegistryKey().getValue().toString();
     }
 
     private void playerData() {

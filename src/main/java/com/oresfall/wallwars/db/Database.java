@@ -199,10 +199,9 @@ public class Database {
         Utils util = new Utils();
         setLobby(server.getOverworld(), 0, 60, 0);
         Config configData = util.readJsonFile(Main.configFile, Config.class);
-        if(Objects.equals(configData.global, new Config.GlobalTemplate())) {
+        if(Objects.equals(configData.global, new Config.GlobalTemplate()) || configData.global == null) {
             setLobby(server.getOverworld(), 0,60,0);
         } else {
-            Main.LOGGER.info(configData.global.world);
             setLobby(Utils.getWorldByName(server,configData.global.world),
                     configData.global.coords[0],
                     configData.global.coords[1],
@@ -221,6 +220,7 @@ public class Database {
                     instance.place[1],
                     instance.place[2]
             );
+            game.setMap(Utils.readSchem(gameData.map), gameData.map);
             Database.addGame(game);
         }
         if(configData.playerData == null) return;

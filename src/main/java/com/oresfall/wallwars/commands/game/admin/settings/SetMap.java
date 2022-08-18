@@ -7,7 +7,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.argumenttype.MapArgumentType;
 import com.oresfall.wallwars.gameclass.Game;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.oresfall.wallwars.gameclass.MapClass;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -28,10 +28,10 @@ public class SetMap {
     }
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Game game = GameArgumentType.getGame(context,"game");
-        Clipboard map = MapArgumentType.getMap(context,"map");
+        MapClass map = MapArgumentType.getMap(context,"map");
         ServerPlayerEntity target = context.getSource().getPlayer();
 
-        if(!game.setMap(map)) {
+        if(!game.setMap(map.getMap(), map.getFile())) {
             throw new SimpleCommandExceptionType(Text.literal("Values are already set.")).create();
         }
 

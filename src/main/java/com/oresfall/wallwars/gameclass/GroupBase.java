@@ -18,12 +18,13 @@ public class GroupBase {
 
     public void removePlayers() {
         if(game != null)for(int i = 0; i < game.getPlayers().size(); i++) {
-            game.leavePlayer(game.getPlayers().get(i));
+            game.getPlayers().get(i).leaveGame();
         }
     }
 
     public void removePlayer(Player player) {
         players.remove(player);
+
         player.setGame(null);
     }
 
