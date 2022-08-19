@@ -213,15 +213,24 @@ public class Database {
             if(getGameByName(gameData.name) != null) continue;
             Game game = new Game(gameData.name, server);
             game.setWorld(gameData.world);
-            Config.GamesTemplate.StartSpawn instance = new Config.GamesTemplate.StartSpawn();
-            game.setSpawnStart(
-                    Utils.getWorldByName(server,gameData.world),
-                    instance.place[1],
-                    instance.place[1],
-                    instance.place[2]
+            game.setMapPlace(
+                    gameData.mapplace_place[0],
+                    gameData.mapplace_place[1],
+                    gameData.mapplace_place[2]
             );
-            game.setMap(Utils.readSchem(gameData.map), gameData.map);
+            game.setMapFile(gameData.map);
+            game.setWaitingPlace(
+                    Utils.getWorldByName(server,gameData.wait_world),
+                    gameData.wait_place[0],
+                    gameData.wait_place[1],
+                    gameData.wait_place[2]
+            );
             Database.addGame(game);
+            for(int i = 0; i < gameData.teams_place.length; i++) {
+                TeamBase team = game.getTeams().get(i);
+                double[] teamData = gameData.teams_place[i];
+                team.setSpawnCoords(teamData[0],teamData[1],teamData[2]);
+            }
         }
         if(configData.playerData == null) return;
         for(Config.PlayerData playerData : configData.playerData) {

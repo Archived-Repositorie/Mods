@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.game.admin.settings.Settings;
+import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -25,11 +26,17 @@ public class Admin {
                         CommandManager.literal("removegame")
                                 .then(
                                         CommandManager.argument("game", GameArgumentType.game())
-                                                .executes(RemoveGame::run)
+                                                .executes(RemoveGame::run).suggests(new GameSuggestions())
                                 )
                 ).then(
                         CommandManager.literal("gamesinfo")
                                 .executes(GamesInfo::run)
+                ).then(
+                        CommandManager.literal("forcegeneratemap")
+                                .then(
+                                        CommandManager.argument("game", GameArgumentType.game())
+                                                .executes(ForceGenerateMap::run).suggests(new GameSuggestions())
+                                )
                 ).then(Settings.register());
     }
 }

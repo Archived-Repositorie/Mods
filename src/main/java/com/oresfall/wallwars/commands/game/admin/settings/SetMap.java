@@ -6,6 +6,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.argumenttype.MapArgumentType;
+import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
+import com.oresfall.wallwars.commands.suggestion.MapSuggestions;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.gameclass.MapClass;
 import net.minecraft.server.command.CommandManager;
@@ -22,8 +24,9 @@ public class SetMap {
                         CommandManager.argument("game", GameArgumentType.game())
                                 .then(
                                         CommandManager.argument("map", MapArgumentType.map())
+                                                .suggests(new MapSuggestions())
                                                 .executes(SetMap::run)
-                                )
+                                ).suggests(new GameSuggestions())
                 );
     }
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

@@ -13,6 +13,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
@@ -20,6 +21,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -78,13 +80,27 @@ public class Game {
         map = clipboard;
         return true;
     }
+
+    public boolean setMap(String file) {
+        if(Objects.equals(this.file, file)) return false;
+        this.file = file;
+        map = Utils.readSchem(file);
+        return true;
+    }
+
+    public boolean setMapFile(String file) {
+        if(Objects.equals(this.file, file)) return false;
+        this.file = file;
+        return true;
+    }
     
     
 
     public boolean generateMap() {
-        if(getSWorld() == null) return false;
+        if(world == null) return false;
+        if(this.map == null) this.map = Utils.readSchem(this.file);
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(FabricAdapter.adapt(world))) {
-            Operation operation = new ClipboardHolder(map)
+            Operation operation = new ClipboardHolder(this.map)
                     .createPaste(editSession)
                     .to(BlockVector3.at(getSPlace().x,getSPlace().y,getSPlace().z))
                     .copyEntities(true)
@@ -104,16 +120,38 @@ public class Game {
         return file;
     }
 
-    public static class StartSpawn {
+    public ArrayList<TeamBase> getTeams() {
+        return teams;
+    }
+
+    public boolean setWaitingPlace(ServerWorld world, double x, double y, double z) {
+        Vec3d place = new Vec3d(x, y, z);
+        if(Objects.equals(getWaitPlace(), place)) return false;
+        if(world != getWaitWorld()) {
+            WaitingRoom.setWorld(world);
+        }
+        WaitingRoom.setPlace(place);
+        return true;
+    }
+
+    public static class GameMap {
+        private static Vec3d place = new Vec3d(0,60,0);
+
+        static void setPlace(Vec3d place) {
+            GameMap.place = place;
+        }
+
+    }
+
+    public static class WaitingRoom {
         private static Vec3d place = new Vec3d(0,60,0);
         private static ServerWorld world;
         static void setWorld(ServerWorld world) {
-            StartSpawn.world = world;
+            WaitingRoom.world = world;
         }
         static void setPlace(Vec3d place) {
-            StartSpawn.place = place;
+            WaitingRoom.place = place;
         }
-
     }
 
     public Game(String name, MinecraftServer server) {
@@ -124,13 +162,18 @@ public class Game {
     }
 
     public Vec3d getSPlace() {
-        return StartSpawn.place;
+        return GameMap.place;
     }
 
-    public ServerWorld getSWorld() {
-        if(StartSpawn.world == null) StartSpawn.world = server.getOverworld();
-        return StartSpawn.world;
+    public Vec3d getWaitPlace() {
+        return WaitingRoom.place;
     }
+
+    public ServerWorld getWaitWorld() {
+        if(WaitingRoom.world == null) WaitingRoom.world = server.getOverworld();
+        return WaitingRoom.world;
+    }
+
 
 
     /**
@@ -176,12 +219,10 @@ public class Game {
         return true;
     }
 
-    public boolean setSpawnStart(ServerWorld world, double x, double y, double z) {
+    public boolean setMapPlace(double x, double y, double z) {
         var place = new Vec3d(x,y,z);
-        if(place.equals(StartSpawn.place)) return false;
-        if(world.equals(StartSpawn.world)) return false;
-        StartSpawn.setWorld(world);
-        StartSpawn.setPlace(place);
+        if(place.equals(GameMap.place)) return false;
+        GameMap.setPlace(place);
         return true;
     }
 
@@ -194,6 +235,11 @@ public class Game {
         Main.LOGGER.info(String.valueOf(getGameStarted()));
         if(this.playerGroup.getPlayers().size() == maxPlayers || getGameStarted()) return false;
         this.playerGroup.addPlayer(player);
+        playerGroup.sendMessage(Utils.defaultMsg(player.getName()+" joined the game!"));
+        if(minPlayers < getPlayers().size()) {
+            playerGroup.sendMessage(Utils.defaultMsg("Need " + (minPlayers-getPlayers().size()) + "players to start game"));
+        }
+        tpPlayerToWaiting(player);
         return true;
     }
 
@@ -208,6 +254,14 @@ public class Game {
         Database.tpPlayerToLobby(player, server);
         Database.addPlayerToDefaultTeam(player);
         return true;
+    }
+
+    public void tpPlayerToWaiting(Player player) {
+        FabricDimensions.teleport(
+                player.getPlayerEntity(server),
+                getWaitWorld(),
+                new TeleportTarget(getWaitPlace(), player.getPlayerEntity(server).getVelocity(), player.getPlayerEntity(server).getYaw(), player.getPlayerEntity(server).prevPitch)
+        );
     }
 
     /**
@@ -281,8 +335,7 @@ public class Game {
 
     private class Stages {
         public void win() {
-            ArrayList<TeamBase> teamsAlive = new ArrayList<>(teams
-            );
+            ArrayList<TeamBase> teamsAlive = new ArrayList<>(teams);
             teams.forEach(team -> {
                 if (team.getPlayers().size() <= 0) {
                     teamsAlive.remove(team);
@@ -292,7 +345,7 @@ public class Game {
                 phase = Integer.MIN_VALUE;
                 TeamBase team = teamsAlive.get(0);
                 teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
-                sendToGroup(Text.literal("Team " + team.toString() + " won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+                sendToGroup(Text.literal("Team " + team.getPrefix() + "won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
                 playerGroup.removePlayers();
             }
             gameStarted = false;

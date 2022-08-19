@@ -107,6 +107,7 @@ public class Utils {
     }
 
     public static @org.jetbrains.annotations.Nullable Clipboard readSchem(String fileName) {
+        Main.LOGGER.info(fileName);
         String filePath = Main.schematics+fileName+".schem";
         File file = new File(filePath);
         Clipboard clipboard;
@@ -120,4 +121,10 @@ public class Utils {
         return clipboard;
     }
 
+    public static boolean ifSchemExist(String fileName) {
+        String filePath = Main.schematics+fileName+".schem";
+        File file = new File(filePath);
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        return format != null;
+    }
 }

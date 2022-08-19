@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
@@ -28,7 +29,7 @@ public class ChangeWorld {
                                 .then(
                                         CommandManager.argument("world", DimensionArgumentType.dimension())
                                                 .executes(ChangeWorld::run)
-                                )
+                                ).suggests(new GameSuggestions())
                 );
     }
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

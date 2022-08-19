@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.oresfall.wallwars.gameclass.MapClass;
 import com.oresfall.wallwars.utls.Utils;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import net.minecraft.text.Text;
 
 public class MapArgumentType implements ArgumentType<MapClass> {
@@ -31,10 +30,9 @@ public class MapArgumentType implements ArgumentType<MapClass> {
         }
         String mapString = reader.getString().substring(argBeginning, reader.getCursor());
 
-        Clipboard map =  Utils.readSchem(mapString);
-        if(map == null) {
+        if(!Utils.ifSchemExist(mapString)) {
             throw new SimpleCommandExceptionType(Text.literal("Map doesn't exist.")).createWithContext(reader);
         }
-        return new MapClass(mapString,map);
+        return new MapClass(mapString);
     }
 }

@@ -1,5 +1,6 @@
 package com.oresfall.wallwars.gameclass;
 
+import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.playerclass.Player;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SentMessage;
@@ -42,6 +43,11 @@ public class TeamBase {
             Formatting.YELLOW,
     };
     private Game game;
+    private Text prefix;
+
+    public Text getPrefix() {
+        return prefix;
+    }
 
     public TeamBase(MinecraftServer server, String name) {
         this.team = new Team(server.getScoreboard(), name);
@@ -68,6 +74,7 @@ public class TeamBase {
     }
 
     public void setPrefix(Text text) {
+        this.prefix = text;
         team.setPrefix(text);
     }
 
@@ -86,6 +93,7 @@ public class TeamBase {
 
     public void teleportPlayers() {
         for(Player player : players) {
+            Main.LOGGER.info("teleport");
             if(player == null) continue;
             player.getPlayerEntity(server).teleport(game.getWorld(), spawnCoords.x, spawnCoords.y,spawnCoords.z, player.getPlayerEntity(server).getYaw(), player.getPlayerEntity(server).getPitch());
         }
@@ -119,5 +127,13 @@ public class TeamBase {
 
     public void setGame(Game game) {
         this.game = game;
+    }
+
+    public double[] getTpPlace() {
+        return new double[]{
+                spawnCoords.x,
+                spawnCoords.y,
+                spawnCoords.z
+        };
     }
 }

@@ -1,7 +1,6 @@
 package com.oresfall.wallwars.commands;
 
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
-import com.oresfall.wallwars.commands.argumenttype.GameTeamArgumentType;
 import com.oresfall.wallwars.commands.argumenttype.MapArgumentType;
 import com.oresfall.wallwars.commands.game.Game;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -21,7 +20,6 @@ public class Commands {
     public static void register() {
         CommandRegistrationCallback.EVENT.register(Game::register);
         ArgumentTypeRegistry.registerArgumentType(new Identifier(modid,"game"), GameArgumentType.class,  ConstantArgumentSerializer.of(GameArgumentType::game));
-        ArgumentTypeRegistry.registerArgumentType(new Identifier(modid,"gameteam"), GameTeamArgumentType.class,  ConstantArgumentSerializer.of(GameTeamArgumentType::gameTeam));
         ArgumentTypeRegistry.registerArgumentType(new Identifier(modid,"map"), MapArgumentType.class,  ConstantArgumentSerializer.of(MapArgumentType::map));
     }
 }

@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
+import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.playerclass.Player;
@@ -24,7 +25,7 @@ public class Join {
         return CommandManager.literal("join")
                 .then(
                         CommandManager.argument("game", GameArgumentType.game())
-                                .executes(Join::run)
+                                .executes(Join::run).suggests(new GameSuggestions())
                 );
     }
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

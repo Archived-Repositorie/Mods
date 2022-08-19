@@ -1,5 +1,7 @@
 package com.oresfall.wallwars.db;
 
+import com.oresfall.wallwars.gameclass.Game;
+import com.oresfall.wallwars.gameclass.TeamBase;
 import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -23,10 +25,12 @@ class Config {
          */
         public String world = "";
 
-        static class StartSpawn {
-            public double[] place = new double[3];
-            public String world = "";
-        }
+        public double[] mapplace_place = new double[3];
+        public double[] wait_place = new double[3];
+        public String wait_world = "";
+
+        public double[][] teams_place = new double[4][3];
+
         public String map = "";
     }
 
@@ -70,16 +74,28 @@ class Config {
         this.games = new GamesTemplate[gamesList.size()];
         for(int i = 0; i < gamesList.size(); i++) {
             games[i] = new GamesTemplate();
-            games[i].name = gamesList.get(i).toString();
-            ServerWorld world = gamesList.get(i).getWorld();
+            Game gameBase = gamesList.get(i);
+
+            games[i].name = gameBase.toString();
+            ServerWorld world = gameBase.getWorld();
             games[i].world = world.getRegistryKey().getValue().toString();
-            GamesTemplate.StartSpawn instance = new GamesTemplate.StartSpawn();
-            instance.place = new double[]{
-                    gamesList.get(i).getSPlace().x,
-                    gamesList.get(i).getSPlace().y,
-                    gamesList.get(i).getSPlace().z,
+            games[i].mapplace_place = new double[]{
+                    gameBase.getSPlace().x,
+                    gameBase.getSPlace().y,
+                    gameBase.getSPlace().z,
             };
+            games[i].wait_place = new double[]{
+                    gameBase.getWaitPlace().x,
+                    gameBase.getWaitPlace().y,
+                    gameBase.getWaitPlace().z
+            };
+            ServerWorld waitWorld = gameBase.getWaitWorld() ;
+            games[i].wait_world = waitWorld.getRegistryKey().getValue().toString();
             games[i].map = gamesList.get(i).getMapFile();
+            for(int j = 0; j < gameBase.getTeams().size(); j++) {
+                TeamBase teamBase = gameBase.getTeams().get(j);
+                games[i].teams_place[j] = teamBase.getTpPlace();
+            }
         }
     }
 
