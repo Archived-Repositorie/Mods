@@ -1,12 +1,13 @@
 package com.oresfall.wallwars.commands.game.admin.settings;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
 import com.oresfall.wallwars.gameclass.Game;
+import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -22,7 +23,7 @@ public class SetWaitingRoom {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
         return CommandManager.literal("setwaitingroom")
                 .then(
-                        CommandManager.argument("game", GameArgumentType.game())
+                        CommandManager.argument("game", StringArgumentType.word())
                                 .then(
                                         CommandManager.argument("world", DimensionArgumentType.dimension()).then(
                                                 CommandManager.argument("coords", BlockPosArgumentType.blockPos())
@@ -34,7 +35,7 @@ public class SetWaitingRoom {
     }
 
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Game game = GameArgumentType.getGame(context,"game");
+        Game game = Utils.getGameFromContext(context,"game");
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "coords");
         ServerWorld world = DimensionArgumentType.getDimensionArgument(context, "world");
         ServerPlayerEntity target = context.getSource().getPlayer();

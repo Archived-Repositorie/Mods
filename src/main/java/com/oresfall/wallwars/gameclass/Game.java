@@ -1,6 +1,5 @@
 package com.oresfall.wallwars.gameclass;
 
-import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.playerclass.Player;
 import com.oresfall.wallwars.utls.Utils;
@@ -14,12 +13,14 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
+import net.minecraft.block.Blocks;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
@@ -46,12 +47,8 @@ public class Game {
     /**
      * Max number of players that can join game
      */
-    private int maxPlayers = 4;
-    private int minPlayers = 1;
-    /**
-     * Max size of plot (X,Z)
-     */
-    private int plotXbyZ = 60 * 6;
+    private int maxPlayers = 20;
+    private int minPlayers = 8;
 
     private ArrayList<TeamBase> teams = new ArrayList<>();
     private final GroupBase playerGroup;
@@ -60,6 +57,8 @@ public class Game {
 
     private Clipboard map;
     private String file;
+
+    private BlockPos[][] walls = new BlockPos[2][2];
 
     public boolean getGameStarted() {
         return gameStarted;
@@ -132,6 +131,10 @@ public class Game {
         }
         WaitingRoom.setPlace(place);
         return true;
+    }
+
+    public BlockPos[][] getWalls() {
+        return walls;
     }
 
     public static class GameMap {
@@ -232,11 +235,10 @@ public class Game {
      * @return 0 if good, -1 if there is too many players
      */
     public boolean joinPlayer(Player player) {
-        Main.LOGGER.info(String.valueOf(getGameStarted()));
         if(this.playerGroup.getPlayers().size() == maxPlayers || getGameStarted()) return false;
         this.playerGroup.addPlayer(player);
         playerGroup.sendMessage(Utils.defaultMsg(player.getName()+" joined the game!"));
-        if(minPlayers < getPlayers().size()) {
+        if(minPlayers > getPlayers().size()) {
             playerGroup.sendMessage(Utils.defaultMsg("Need " + (minPlayers-getPlayers().size()) + "players to start game"));
         }
         tpPlayerToWaiting(player);
@@ -291,7 +293,7 @@ public class Game {
     }
     private final Stages s = new Stages();
     public void onTick(MinecraftServer server) {
-        if(phase >= 2) {
+        if(phase >= 3) {
             s.win();
         }
         switch(phase) {
@@ -345,7 +347,7 @@ public class Game {
                 phase = Integer.MIN_VALUE;
                 TeamBase team = teamsAlive.get(0);
                 teamsAlive.get(0).sendMessage(Text.literal("You win!").formatted(Formatting.BOLD, Formatting.GOLD));
-                sendToGroup(Text.literal("Team " + team.getPrefix() + "won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+                sendToGroup(Text.literal("Team ").append(team.getPrefix()).append("won the game!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
                 playerGroup.removePlayers();
             }
             gameStarted = false;
@@ -421,9 +423,9 @@ public class Game {
             for(TeamBase team : teams) {
                 team.teleportPlayers();
             }
-            time = 0;
             playerGroup.setPhaseToPlayers(phase++);
             phase = 2;
+            time = 0;
         }
 
         public void wallsDown() {
@@ -457,6 +459,7 @@ public class Game {
                 case startTime -> {
                     sendToGroup(Utils.defaultMsg("Walls go down!"));
                     playerGroup.setPhaseToPlayers(phase++);
+                    Game.this.wallsDown();
                     phase = 3;
                     time = 0;
                 }
@@ -482,7 +485,19 @@ public class Game {
     }
 
     public void wallsDown() {
-    //TODO
+        for (BlockPos[] wall : walls) {
+            Iterable<BlockPos> blocksInWall = BlockPos.iterate(wall[0], wall[1]);
+            for (BlockPos blockPos : blocksInWall) {
+                world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
+            }
+        }
+    }
+
+    public void setWalls(BlockPos first0,BlockPos last0,BlockPos first1,BlockPos last1) {
+        walls = new BlockPos[][] {
+                {first0, last0},
+                {first1,last1}
+        };
     }
 
     /**

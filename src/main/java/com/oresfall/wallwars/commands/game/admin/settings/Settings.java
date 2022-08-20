@@ -12,6 +12,7 @@ public class Settings {
                 .then(SetMapPlace.register())
                 .then(SetTeams.register())
                 .then(SetMap.register())
-                .then(SetWaitingRoom.register());
+                .then(SetWaitingRoom.register())
+                .then(SetWalls.register());
     }
 }

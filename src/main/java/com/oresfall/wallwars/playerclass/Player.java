@@ -1,6 +1,5 @@
 package com.oresfall.wallwars.playerclass;
 
-import com.oresfall.wallwars.Main;
 import com.oresfall.wallwars.db.Database;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.gameclass.TeamBase;
@@ -46,8 +45,6 @@ public class Player {
 
     public void loadPlayerEntity(MinecraftServer server) {
         this.playerEntity = server.getPlayerManager().getPlayer(ID);
-        Main.LOGGER.info(ID.toString());
-        if(this.playerEntity == null) Main.LOGGER.info("null lmao");
     }
 
     public void setPlayerEntity(ServerPlayerEntity player) {
@@ -59,9 +56,6 @@ public class Player {
     }
 
     public boolean joinGame(Game game) {
-        Main.LOGGER.info(game.toString());
-        if(this.game != null)Main.LOGGER.info(this.game.toString());
-
         if(game == this.game) return false;
         this.game = game;
         this.inGame = true;
@@ -79,7 +73,7 @@ public class Player {
     }
 
     public ServerPlayerEntity getPlayerEntity(MinecraftServer server) {
-        if(playerEntity == null) loadPlayerEntity(server);
+        if(playerEntity == null)loadPlayerEntity(server);
         return playerEntity;
     }
 

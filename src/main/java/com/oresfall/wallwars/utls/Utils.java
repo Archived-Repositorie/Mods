@@ -2,7 +2,14 @@ package com.oresfall.wallwars.utls;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.oresfall.wallwars.Main;
+import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.gameclass.Game;
+import com.oresfall.wallwars.gameclass.MapClass;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
@@ -126,5 +133,22 @@ public class Utils {
         File file = new File(filePath);
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         return format != null;
+    }
+
+    public static <S> Game getGameFromContext(CommandContext<S> context, String name) throws CommandSyntaxException {
+        String gameString = StringArgumentType.getString(context,name);
+        Game game = Database.getGameByName(gameString);
+        if(game == null) {
+            throw new SimpleCommandExceptionType(Text.literal("Game doesn't exist.")).create();
+        }
+        return game;
+    }
+
+    public static <S> MapClass getMapFromContext(CommandContext<S> context, String name) throws CommandSyntaxException {
+        String mapString = StringArgumentType.getString(context,name);
+        if(!Utils.ifSchemExist(mapString)) {
+            throw new SimpleCommandExceptionType(Text.literal("Map doesn't exist.")).create();
+        }
+        return new MapClass(mapString);
     }
 }

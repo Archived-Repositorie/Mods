@@ -5,11 +5,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.oresfall.wallwars.commands.argumenttype.GameArgumentType;
 import com.oresfall.wallwars.commands.suggestion.GameSuggestions;
 import com.oresfall.wallwars.commands.suggestion.TeamSuggestions;
 import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.gameclass.TeamBase;
+import com.oresfall.wallwars.utls.Utils;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -23,7 +23,7 @@ public class SetTeams {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
         return CommandManager.literal("setteams")
                 .then(
-                        CommandManager.argument("game", GameArgumentType.game())
+                        CommandManager.argument("game", StringArgumentType.word())
                                 .then(
                                         CommandManager.argument("team", StringArgumentType.word())
                                                 .then(
@@ -35,7 +35,7 @@ public class SetTeams {
     }
 
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Game game = GameArgumentType.getGame(context, "game");
+        Game game = Utils.getGameFromContext(context,"game");
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "coords");
         ServerPlayerEntity target = context.getSource().getPlayer();
         String string = StringArgumentType.getString(context,"team");

@@ -13,6 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.NotNull;
@@ -231,6 +232,12 @@ public class Database {
                 double[] teamData = gameData.teams_place[i];
                 team.setSpawnCoords(teamData[0],teamData[1],teamData[2]);
             }
+            game.setWalls(
+                    new BlockPos(gameData.walls[0][0][0], gameData.walls[0][0][1], gameData.walls[0][0][2]),
+                    new BlockPos(gameData.walls[0][1][0], gameData.walls[0][1][1], gameData.walls[0][1][2]),
+                    new BlockPos(gameData.walls[1][0][0], gameData.walls[1][0][1], gameData.walls[1][0][2]),
+                    new BlockPos(gameData.walls[1][1][0], gameData.walls[1][1][1], gameData.walls[1][1][2])
+            );
         }
         if(configData.playerData == null) return;
         for(Config.PlayerData playerData : configData.playerData) {

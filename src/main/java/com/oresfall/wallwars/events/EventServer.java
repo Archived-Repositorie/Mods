@@ -45,6 +45,5 @@ public class EventServer {
         ServerLifecycleEvents.SERVER_STARTED.register(EventServer::Started);
         ServerLifecycleEvents.SERVER_STARTING.register(EventServer::Starting);
         ServerLifecycleEvents.SERVER_STOPPING.register(EventServer::Stopping);
-
     }
 }

@@ -21,9 +21,10 @@ public class ServerPlayNetworkHandlerMixin {
     )
     private void broadcast(PlayerManager instance, SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters params) {
         Player player = Database.getPlayer(sender.getUuid());
-        if(player.getInGame() && player.getGame() != null && player.getGame().getGameStarted()) {
+        if(player.getInGame() && player.getGame() != null && !player.getGame().getGameStarted()) {
             player.getGame().sendToGroup(message, params);
+        } else {
+            player.getTeam().sendMessage(message, params);
         }
-        player.getTeam().sendMessage(message, params);
     }
 }

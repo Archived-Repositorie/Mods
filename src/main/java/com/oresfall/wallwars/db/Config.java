@@ -29,6 +29,8 @@ class Config {
         public double[] wait_place = new double[3];
         public String wait_world = "";
 
+        public double[][][] walls = new double[2][2][3];
+
         public double[][] teams_place = new double[4][3];
 
         public String map = "";
@@ -95,6 +97,16 @@ class Config {
             for(int j = 0; j < gameBase.getTeams().size(); j++) {
                 TeamBase teamBase = gameBase.getTeams().get(j);
                 games[i].teams_place[j] = teamBase.getTpPlace();
+            }
+            for(int j = 0; j < gameBase.getWalls().length; j++) {
+                for(int h = 0; h < gameBase.getWalls()[j].length; h++) {
+                    if(gameBase.getWalls()[j][h] == null) continue;
+                    games[i].walls[j][h] = new double[] {
+                            gameBase.getWalls()[j][h].getX(),
+                            gameBase.getWalls()[j][h].getY(),
+                            gameBase.getWalls()[j][h].getZ()
+                    };
+                }
             }
         }
     }

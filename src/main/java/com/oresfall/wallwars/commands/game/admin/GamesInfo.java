@@ -1,9 +1,11 @@
 package com.oresfall.wallwars.commands.game.admin;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.gameclass.Game;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -17,6 +19,10 @@ import java.util.Arrays;
  * Usage: `/game admin gamesinfo`
  */
 public class GamesInfo {
+    public static LiteralArgumentBuilder<ServerCommandSource> register() {
+        return CommandManager.literal("gamesinfo")
+                .executes(GamesInfo::run);
+    }
     public static int run(@NotNull CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity target = context.getSource().getPlayer();
 

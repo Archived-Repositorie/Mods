@@ -1,12 +1,14 @@
 package com.oresfall.wallwars.commands.game.admin;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.oresfall.wallwars.gameclass.Game;
 import com.oresfall.wallwars.db.Database;
+import com.oresfall.wallwars.gameclass.Game;
 import net.minecraft.command.argument.DimensionArgumentType;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -19,6 +21,16 @@ import static com.oresfall.wallwars.utls.Utils.defaultMsg;
  * Usage: `/game admin creategame {game} {world}`
  */
 public class CreateGame {
+    public static LiteralArgumentBuilder<ServerCommandSource> register() {
+        return CommandManager.literal("creategame")
+                .then(
+                        CommandManager.argument("name", StringArgumentType.word())
+                                .then(
+                                        CommandManager.argument("world", DimensionArgumentType.dimension())
+                                                .executes(CreateGame::run)
+                                )
+                );
+    }
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String gameName = StringArgumentType.getString(context,"name");
         ServerWorld world = DimensionArgumentType.getDimensionArgument(context,"world");
